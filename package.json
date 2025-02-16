@@ -1,0 +1,18 @@
+{
+  "name": "Jobber-VisitsToMarkdown",
+  "version": "1.0.0",
+  "description": "Live Jobber Visit List mini‑app with updated OAuth2 flow",
+  "main": "index.js",
+  "scripts": {
+    "start": "concurrently \"nodemon index.js\" \"browser-sync start --proxy 'localhost:3000' --port 3001 --no-notify --files 'public/**/*.*'\""
+  },
+  "dependencies": {
+    "axios": "^1.4.0",
+    "concurrently": "^9.1.2",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "express-session": "^1.17.3",
+    "passport": "^0.6.0",
+    "passport-oauth2": "^1.6.1"
+  }
+}
