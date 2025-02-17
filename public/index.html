@@ -134,6 +134,9 @@
       const followingFriday = getFollowingFriday(nextSunday);
       document.getElementById('startDate').value = formatDateInput(nextSunday);
       document.getElementById('endDate').value = formatDateInput(followingFriday);
+
+      // Auto load fetch visits
+      fetchVisits();
     });
   </script>
 </head>
@@ -151,15 +154,23 @@
   
   <div id="wrapper">
     <div id="optionsContainer">
+      <label for="sortBySelect">Sort by:</label>
+      <select id="sortBySelect">
+        <option value="date">Date</option>
+        <option value="geoCode">GeoCode</option>
+        <option value="value">$ Value</option>
+        <option value="geoCodeThenValue">GeoCode, then $ Value</option>
+        <option value="alphabetical">Alphabetical</option>
+        <option value="salesperson">Salesperson</option>
+      </select><br />
       <input type="checkbox" id="annualOnlyCheckbox"><label for="annualOnlyCheckbox">Annual Jobs Only</label><br />
       <input type="checkbox" id="excludeAnnualCheckbox"><label for="excludeAnnualCheckbox">Exclude Unconfirmed Annual Jobs</label><br />
       <input type="checkbox" id="showWeekdayDatesCheckbox" checked><label for="showWeekdayDatesCheckbox">Show Only Weekday Job Dates</label><br />
       <input type="checkbox" id="showAllDatesCheckbox"><label for="showAllDatesCheckbox">Show All Job Dates</label><br />
       <input type="checkbox" id="showValueCheckbox"><label for="showValueCheckbox">Show $ Value</label><br />
-      <input type="checkbox" id="showBidderCheckbox"><label for="showBidderCheckbox">Show Bidder</label><br />
+      <input type="checkbox" id="showSalespersonCheckbox"><label for="showSalespersonCheckbox">Show Salesperson</label><br />
       <input type="checkbox" id="renderMarkdownCheckbox" checked><label for="renderMarkdownCheckbox">Show Rendered Markdown</label><br />
-      &nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" id="showTotalCheckbox" checked><label for="showTotalCheckbox">Show Total Job $$ Value</label><br />
-      &nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" id="countJobsCheckbox" checked><label for="countJobsCheckbox">Show Total Job Count</label><br />
+      <input type="checkbox" id="showRangeStatsCheckbox" checked><label for="showRangeStatsCheckbox">Show Range Stats</label><br />
     </div>
 
     <div id="outputContainer">
@@ -186,32 +197,83 @@
       const visits = data.data.visits.edges;
       
       // Sort visits based on a "geo code" extracted from the title.
-      visits.sort((a, b) => {
-        const getGeoCode = (edge) => {
-          const titleParts = edge.node.title.match(/(^[^-]+)|(-[A-Z]+-)|([^-\s][^-\n]*[^-\s])|(-[^-\s][^-\n]*[^-\s])/g);
-          return (titleParts && titleParts[1]) ? titleParts[1].trim() : '';
-        };
-        return getGeoCode(a).localeCompare(getGeoCode(b));
-      });
-      
+      const getGeoCode = (edge) => {
+        const titleParts = edge.node.title.match(/(^[^-]+)|(-[A-Z]+-)|([^-\s][^-\n]*[^-\s])|(-[^-\s][^-\n]*[^-\s])/g);
+        return (titleParts && titleParts[1]) ? titleParts[1].trim() : '';
+      };
+
       let output = '';
+      const sortBySelect = document.getElementById("sortBySelect");
       const annualOnlyCheckbox = document.getElementById("annualOnlyCheckbox");
       const excludeAnnualCheckbox = document.getElementById("excludeAnnualCheckbox");
       const weekdayDatesCheckbox = document.getElementById("showWeekdayDatesCheckbox");
       const allDatesCheckbox = document.getElementById("showAllDatesCheckbox");
-      const valueCheckbox = document.getElementById("showValueCheckbox");
-      const bidderCheckbox = document.getElementById("showBidderCheckbox");
-      const countCheckbox = document.getElementById("countJobsCheckbox");
-      const showTotalCheckbox = document.getElementById("showTotalCheckbox");
+      const showValueCheckbox = document.getElementById("showValueCheckbox");
+      const showSalespersonCheckbox = document.getElementById("showSalespersonCheckbox");
+      const showRangeStatsCheckbox = document.getElementById("showRangeStatsCheckbox");
 
+      let total = 0;
+      let jobCount = 0;
+      let jobLines = '';
+
+      switch (sortBySelect.value) {
+        case "geoCode":
+          visits.sort((a, b) => {
+            return getGeoCode(a).localeCompare(getGeoCode(b));
+          });
+          break;
+        case "value":
+          visits.sort((a, b) => {
+            const valueA = a.node.job.total || 0;
+            const valueB = b.node.job.total || 0;
+            return valueB - valueA;
+          });
+          showValueCheckbox.checked = true;
+          break;
+        case "geoCodeThenValue":
+          visits.sort((a, b) => {
+            const geoCodeA = getGeoCode(a);
+            const geoCodeB = getGeoCode(b);
+            const valueA = a.node.job.total || 0;
+            const valueB = b.node.job.total || 0;
+
+            const geoCodeComparison = geoCodeA.localeCompare(geoCodeB);
+            if (geoCodeComparison !== 0) {
+              return geoCodeComparison;
+            } else {
+              return valueB - valueA;
+            }
+          });
+          showValueCheckbox.checked = true;
+          break;
+        case "alphabetical":
+          visits.sort((a, b) => {
+            return a.node.title.localeCompare(b.node.title);
+          });
+          break;
+        case "salesperson":
+          visits.sort((a, b) => {
+            const salespersonA = a.node.job.salesperson ? a.node.job.salesperson.name.first : '';
+            const salespersonB = b.node.job.salesperson ? b.node.job.salesperson.name.first : '';
+            return salespersonA.localeCompare(salespersonB);
+          });
+          showSalespersonCheckbox.checked = true;
+          break;
+        case "date":
+          visits.sort((a, b) => {
+            return new Date(a.node.startAt) - new Date(b.node.startAt);
+          });
+        default:
+          // Already sorted by date by default
+          break;
+      }
+      
+      // Iterate over the visits and format them.
       visits.forEach(edge => {
         const titleParts = edge.node.title.match(/(^[^-]+)|(-[A-Z]+-)|([^-\s][^-\n]*[^-\s])|(-[^-\s][^-\n]*[^-\s])/g);
-        let bidderName = 'Unknown';
-        if (edge.node.job.customFields) {
-          const bidderField = edge.node.job.customFields.find(field => field.label === 'Bidder');
-          if (bidderField && bidderField.valueText) {
-            bidderName = bidderField.valueText.trim();
-          }
+        let salespersonName = 'Unknown';
+        if (edge.node.job.salesperson) {
+          salespersonName = edge.node.job.salesperson.name.first.trim();
         }
         if (titleParts) {
           const jobIdentifier = titleParts[0].trim();
@@ -233,38 +295,36 @@
           }
           
           if (annualCheck) {
-            output += `[**${jobIdentifier}**](${jobberWebUri}) ${geoCode} [${address}](${googleMapsUrl}) - ${workCode}`;
+            jobCount++;
+            total += edge.node.job.total || 0;
+            jobLines += `[**${jobIdentifier}**](${jobberWebUri}) ${geoCode} [${address}](${googleMapsUrl}) - ${workCode}`;
             const jobdate = formatDate(edge.node.startAt);
             if (allDatesCheckbox.checked) {
-              output += ` **\`${jobdate}\`**`;
+              jobLines += ` **\`${jobdate}\`**`;
             } else if (weekdayDatesCheckbox.checked && !jobdate.startsWith("Sun ")) {
-              output += ` **\`${jobdate}\`**`;
+              jobLines += ` **\`${jobdate}\`**`;
             }
-            if (valueCheckbox.checked) {
-              output += ` \`$${edge.node.job.total ? edge.node.job.total : '?'}\``;
+            if (showValueCheckbox.checked) {
+              jobLines += ` \`$${edge.node.job.total ? edge.node.job.total : '?'}\``;
             }
-            if (bidderCheckbox.checked) {
-              output += ` \`${bidderName}\``;
+            if (showSalespersonCheckbox.checked) {
+              jobLines += ` \`${salespersonName}\``;
             }
-            output += '\n';
+            jobLines += '\n';
           }
         }
       });
       
-      if (countCheckbox.checked) {
-        output += `**\`${visits.length} jobs\`**`;
+      if (showRangeStatsCheckbox.checked) {
+        output += `**\`${jobCount} Jobs\`** **\`$${total}\`**\n\n`;
       }
-      if (showTotalCheckbox.checked) {
-        let total = 0;
-        visits.forEach(edge => {
-          total += edge.node.job.total || 0;
-        });
-        output += `\n **\`$${total}\`**`;
-      }
+      
+      output += jobLines;
       
       return output;
     }
 
+    // Format and display the Markdown output.
     function formatAndDisplay() {
       const data = DATA;
       const output = document.getElementById('output');
@@ -288,7 +348,7 @@
       }
     }
 
-    // Function to fetch visits from the server and update the page.
+    // Fetch visits from the server and update the page.
     async function fetchVisits() {
       const startDate = document.getElementById('startDate').value;
       const endDate = document.getElementById('endDate').value;
@@ -297,6 +357,7 @@
         return;
       }
 
+      // Fetch the visits from the server.
       try {
         const response = await fetch(
           `/api/visits?startDate=${encodeURIComponent(startDate + "T00:00:00")}&endDate=${encodeURIComponent(endDate + "T23:59:59")}`,
@@ -322,11 +383,14 @@
         alert("Error fetching visits. Please try again.");
       }
     }
-      
+    
+    // Event listeners for the fetch button and checkboxes.
     document.getElementById('fetchButton').addEventListener('click', (event) => {
       event.preventDefault();
       fetchVisits();
     });
+    const sortBySelect = document.getElementById("sortBySelect");
+    sortBySelect.addEventListener('change', formatAndDisplay);
     const checkboxes = document.querySelectorAll('input[type="checkbox"]');
     checkboxes.forEach(checkbox => {
       checkbox.addEventListener('change', formatAndDisplay);

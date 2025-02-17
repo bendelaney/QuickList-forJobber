@@ -100,10 +100,10 @@ app.get('/api/visits', ensureAuthenticated, async (req, res) => {
               job {
                 jobberWebUri
                 total
-                customFields {
-                  ... on CustomFieldText {
-                    label
-                    valueText
+                salesperson {
+                  name {
+                    first
+                    last
                   }
                 }
               }
