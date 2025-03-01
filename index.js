@@ -75,7 +75,7 @@ app.get('/api/visits', ensureAuthenticated, async (req, res) => {
     return res.status(400).json({ error: 'startDate and endDate are required' });
   }
 
-  console.log("Jobber API Version:", process.env.JOBBER_API_VERSION);
+  // console.log("Jobber API Version:", process.env.JOBBER_API_VERSION);
 
   const graphQLQuery = {
     query: `
