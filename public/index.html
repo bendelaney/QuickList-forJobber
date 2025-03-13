@@ -257,9 +257,11 @@
         <label for="annualSelect">Annual Jobs:</label>
         <select id="annualSelect">
           <option value="include" selected>Include Annual Jobs</option>
-          <option value="none">Don't Show Annual Jobs</option>
+          <option value="exclude">Exclude Annual Jobs</option>
+          <option value="excludeUnconfirmed">Exclude Unconfirmed Annual Jobs</option>
           <option value="annualOnly">Show Only Annual Jobs</option>
-          <option value="excludeUnconfirmedAnnual">Show Only Confirmed Annual Jobs</option>
+          <option value="annualOnlyConfirmed">Show Only *Confirmed* Annual Jobs</option>
+          <option value="annualOnlyUnconfirmed">Show Only *Unconfirmed* Annual Jobs</option>
         </select>
       </p>
 
@@ -383,24 +385,44 @@
         const jobberWebUri = edge.node.job.jobberWebUri;
         const googleMapsUrl = `https://www.google.com/maps/place/${address.replace(/\s\/\s/g, '+').replace(/\s/g, '+')}+Spokane,WA`;
 
+        // Annual selector
+        // include
+        // exclude
+        // excludeUnconfirmed
+        // annualOnly
+        // annualOnlyConfirmed
         if (annualSelect.value === "include") {
           includingLine = true;
-        } else if (annualSelect.value === "annualOnly") {
+        } 
+        else if (annualSelect.value === "exclude") {
+          if (jobIdentifier.includes('=')) {
+            includingLine = false;
+          }
+        } 
+        else if (annualSelect.value === "excludeUnconfirmed") {
+          // Show only jobs with '=' but not starting with '='
+          if (jobIdentifier.includes('=') && jobIdentifier.startsWith('=')) {
+            includingLine = false;
+          }
+        }
+        else if (annualSelect.value === "annualOnly") {
           // Show only jobs with '=' in the identifier (annual jobs)
           if (!jobIdentifier.includes('=')) {
             includingLine = false;
           }
-        } else if (annualSelect.value === "excludeUnconfirmedAnnual") {
+        } 
+        else if (annualSelect.value === "annualOnlyConfirmed") {
           // Show only confirmed annual jobs (those with '=' but not starting with '=')
           if (!jobIdentifier.includes('=') || jobIdentifier.startsWith('=')) {
             includingLine = false;
           }
-        } else {
-          // "none" option selected - don't show annual jobs
-          if (jobIdentifier.includes('=')) {
+        } 
+        else if (annualSelect.value === "annualOnlyUnconfirmed") {
+          // Show only unconfirmed annual jobs (those with '=' but not starting with '=')
+          if (!jobIdentifier.includes('=') || !jobIdentifier.startsWith('=')) {
             includingLine = false;
           }
-        }
+        } 
 
         if (includingLine) {
           jobCount++;
