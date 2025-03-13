@@ -10,45 +10,83 @@
 			font-family: 'Roboto', sans-serif;
 			background-color: #f4f6f8;
 			color: #333;
-			padding: 20px;
-			max-width: 900px;
+			padding: 0 20px;
+			/* max-width: 900px; */
 			margin: 0 auto;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
 		}
 
 		h1 {
 			font-size: 2rem;
 			color: #1a1a1a;
-			margin-bottom: 20px;
+			margin: 10px 0;
 		}
 
+    label {
+      font-weight: bold;
+    }
+    input[type="checkbox"] {
+      margin-right: 10px;
+      transform: scale(1.5);
+    }
+    .dates {
+      display: flex;
+      align-items: center;
+    }
+    .dates label {
+      margin-right: 5px;
+      flex: 2;
+    }
     #startDate, #endDate {
-      font-size: 18px;
-      font-family: monospace;
-      padding: 10px;
+      font-size: 16px;
+      padding: 5px;
       border-radius: 4px;
       border: 1px solid #aaa;
+      font-weight: bold;
+      flex: 2;
     }
 
     #wrapper {
       display: flex;
       justify-content: space-between;
-      align-items: flex-start;
       margin-top: 20px;
+      flex: 1;
+      min-height: 0;
     }
     #optionsContainer {
       margin-bottom: 20px;
-      flex: 1;
+      background: #e5e5e5;  /* Changed from pink to a more subtle color */
       margin-right: 20px;
       font-size: 0.85em;
-      width: auto;
-      width: 260px;
+      max-width: 300px;
+      padding: 0 15px;
+      border-radius: 4px;
+      box-shadow: 0 0px 5px rgba(0,0,0,0.5);
     }
-    #outputContainer {
-      flex: 3;
+    #optionsContainer label {
+      margin-right: 5px;
+      flex: 2;
+    }
+    #optionsContainer select {
+      flex: 2;
+    }
+    #optionsContainer p {
+      display: flex;
+      align-items: center;
     }
 
-    textarea {
-			width: 100%;
+    #outputContainer {
+      flex: 3;
+      display: flex;
+      gap: 20px;
+      min-height: 0; /* Important for flex children to respect parent height */
+      height: calc(100vh - 150px); /* Adjust based on your header/footer size */
+    }
+
+    textarea#output {
+			flex: 1;
 			min-height: 100px;
 			font-family: monospace;
 			box-sizing: border-box;
@@ -57,7 +95,23 @@
 			border-radius: 4px;
 			resize: vertical;
 			font-size: 11px;
+      background-color: #e5e5e5;
+      overflow: auto;
+      box-shadow: 0 2px 5px inset rgba(0,0,0,0.2);
 		}
+    #renderedMarkdown {
+      flex: 1;
+      padding: 12px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+      font-size: 0.85em;
+      overflow: auto;
+      background-color: white;
+    }
+    #renderedMarkdown p {
+      margin: 0;
+      padding: 2px 0;
+    }
 
 		button {
 			display: inline-block;
@@ -70,13 +124,20 @@
 			border-radius: 4px;
 			cursor: pointer;
 			transition: all 0.3s;
+      width: 100%;
 		}
 
 		button:hover {
 			background-color: #0056b3;
 		}
 
-		#renderedMarkdown {
+    select {
+      padding: 10px;
+      border-radius: 4px;
+      border: 1px solid #aaa;
+      width: 100%;
+    }
+    #renderedMarkdown {
 			p {
 				line-height: 1.75;
 			}
@@ -88,6 +149,29 @@
 				border-radius: 3px;
 			}
 		}
+
+    @media (max-width: 768px) {
+      #wrapper {
+        flex-direction: column;
+      }
+      
+      #optionsContainer {
+        max-width: 100%;
+        margin-right: 0;
+        margin-bottom: 20px;
+      }
+      
+      #outputContainer {
+        flex-direction: column;
+        height: auto;
+        max-height: 70vh;
+      }
+      
+      textarea#output, #renderedMarkdown {
+        width: 100%;
+        min-height: 200px;
+      }
+    }
   </style>
   <script>
     // Pre-authentication: On page load, check if the user is authenticated.
@@ -144,38 +228,58 @@
   <h1>Jobber Visits 👉🏼 Markdown</h1>
   <p>Select a start and end date to fetch your Jobber visits. (If you aren’t logged in, you will be redirected to Jobber’s login.)</p>
   
-  <label for="startDate">Start Date:</label>
-  <input type="date" id="startDate" name="startDate">
-  
-  <label for="endDate">End Date:</label>
-  <input type="date" id="endDate" name="endDate">
-  
-  <button type="button" id="fetchButton">Fetch Visits</button>
-  
   <div id="wrapper">
     <div id="optionsContainer">
-      <label for="sortBySelect">Sort by:</label>
-      <select id="sortBySelect">
-        <option value="date">Date</option>
-        <option value="geoCode">GeoCode</option>
-        <option value="value">$ Value</option>
-        <option value="geoCodeThenValue">GeoCode, then $ Value</option>
-        <option value="alphabetical">Alphabetical</option>
-        <option value="salesperson">Salesperson</option>
-      </select><br />
-      <input type="checkbox" id="annualOnlyCheckbox"><label for="annualOnlyCheckbox">Annual Jobs Only</label><br />
-      <input type="checkbox" id="excludeAnnualCheckbox"><label for="excludeAnnualCheckbox">Exclude Unconfirmed Annual Jobs</label><br />
-      <input type="checkbox" id="showWeekdayDatesCheckbox" checked><label for="showWeekdayDatesCheckbox">Show Only Weekday Job Dates</label><br />
-      <input type="checkbox" id="showAllDatesCheckbox"><label for="showAllDatesCheckbox">Show All Job Dates</label><br />
-      <input type="checkbox" id="showValueCheckbox"><label for="showValueCheckbox">Show $ Value</label><br />
-      <input type="checkbox" id="showSalespersonCheckbox"><label for="showSalespersonCheckbox">Show Salesperson</label><br />
-      <input type="checkbox" id="renderMarkdownCheckbox" checked><label for="renderMarkdownCheckbox">Show Rendered Markdown</label><br />
-      <input type="checkbox" id="showRangeStatsCheckbox" checked><label for="showRangeStatsCheckbox">Show Range Stats</label><br />
+      <p class="dates">
+        <label for="startDate">Start Date:</label>
+        <input type="date" id="startDate" name="startDate">
+      </p>
+      <p class="dates">
+        <label for="endDate">End Date:</label>
+        <input type="date" id="endDate" name="endDate">
+      </p>      
+      
+      <button type="button" id="fetchButton">Fetch Visits</button>
+
+      <p>
+        <label for="sortBySelect">Sort by:</label>
+        <select id="sortBySelect">
+          <option value="date">Date</option>
+          <option value="geoCode">GeoCode</option>
+          <option value="value">$ Value</option>
+          <option value="geoCodeThenValue">GeoCode, then $ Value</option>
+          <option value="alphabetical">Alphabetical</option>
+          <option value="salesperson">Salesperson</option>
+        </select>
+      </p>
+
+      <p>
+        <label for="annualSelect">Annual Jobs:</label>
+        <select id="annualSelect">
+          <option value="include" selected>Include Annual Jobs</option>
+          <option value="none">Don't Show Annual Jobs</option>
+          <option value="annualOnly">Show Only Annual Jobs</option>
+          <option value="excludeUnconfirmedAnnual">Show Only Confirmed Annual Jobs</option>
+        </select>
+      </p>
+
+      <p>
+        <label for="showDatesSelect">Show Dates:</label>
+        <select id="showDatesSelect">
+          <option value="none" selected>Don't Show Dates</option>
+          <option value="all">Show All Job Dates</option>
+          <option value="weekdayOnly">Show Only Weekday Job Dates</option>
+        </select>
+      </p>
+      <p><input type="checkbox" id="showValueCheckbox"><label for="showValueCheckbox">Show $ Value</label></p>
+      <p><input type="checkbox" id="showSalespersonCheckbox"><label for="showSalespersonCheckbox">Show Salesperson</label></p>
+      <p><input type="checkbox" id="renderMarkdownCheckbox" checked><label for="renderMarkdownCheckbox">Show Rendered Markdown</label></p>
+      <p><input type="checkbox" id="showRangeStatsCheckbox" checked><label for="showRangeStatsCheckbox">Show Range Stats</label></p>
     </div>
 
     <div id="outputContainer">
-      <textarea id="output" placeholder="Your Markdown will go here."></textarea>
       <div id="renderedMarkdown"></div>
+      <textarea id="output" placeholder="Your Markdown will go here."></textarea>
     </div>
   </div>
 
@@ -204,10 +308,8 @@
 
       let output = '';
       const sortBySelect = document.getElementById("sortBySelect");
-      const annualOnlyCheckbox = document.getElementById("annualOnlyCheckbox");
-      const excludeAnnualCheckbox = document.getElementById("excludeAnnualCheckbox");
-      const weekdayDatesCheckbox = document.getElementById("showWeekdayDatesCheckbox");
-      const allDatesCheckbox = document.getElementById("showAllDatesCheckbox");
+      const annualSelect = document.getElementById("annualSelect");
+      const showDatesSelect = document.getElementById("showDatesSelect");
       const showValueCheckbox = document.getElementById("showValueCheckbox");
       const showSalespersonCheckbox = document.getElementById("showSalespersonCheckbox");
       const showRangeStatsCheckbox = document.getElementById("showRangeStatsCheckbox");
@@ -271,47 +373,54 @@
       // Iterate over the visits and format them.
       visits.forEach(edge => {
         const titleParts = edge.node.title.match(/(^[^-]+)|(-[A-Z]+-)|([^-\s][^-\n]*[^-\s])|(-[^-\s][^-\n]*[^-\s])/g);
-        let salespersonName = 'Unknown';
-        if (edge.node.job.salesperson) {
-          salespersonName = edge.node.job.salesperson.name.first.trim();
+        let salespersonName = edge.node.job.salesperson ? edge.node.job.salesperson.name.first.trim() : 'Unknown';
+        let includingLine = true;
+
+        const jobIdentifier = titleParts[0].trim();
+        const geoCode = titleParts[1] ? titleParts[1].trim() : '?';
+        const address = titleParts[2] ? titleParts[2].trim() : '?';
+        const workCode = titleParts[3] ? titleParts[3].trim() : '?';
+        const jobberWebUri = edge.node.job.jobberWebUri;
+        const googleMapsUrl = `https://www.google.com/maps/place/${address.replace(/\s\/\s/g, '+').replace(/\s/g, '+')}+Spokane,WA`;
+
+        if (annualSelect.value === "include") {
+          includingLine = true;
+        } else if (annualSelect.value === "annualOnly") {
+          // Show only jobs with '=' in the identifier (annual jobs)
+          if (!jobIdentifier.includes('=')) {
+            includingLine = false;
+          }
+        } else if (annualSelect.value === "excludeUnconfirmedAnnual") {
+          // Show only confirmed annual jobs (those with '=' but not starting with '=')
+          if (!jobIdentifier.includes('=') || jobIdentifier.startsWith('=')) {
+            includingLine = false;
+          }
+        } else {
+          // "none" option selected - don't show annual jobs
+          if (jobIdentifier.includes('=')) {
+            includingLine = false;
+          }
         }
-        if (titleParts) {
-          const jobIdentifier = titleParts[0].trim();
-          const geoCode = titleParts[1] ? titleParts[1].trim() : '?';
-          const address = titleParts[2] ? titleParts[2].trim() : '?';
-          const workCode = titleParts[3] ? titleParts[3].trim() : '?';
-          const jobberWebUri = edge.node.job.jobberWebUri;
-          const googleMapsUrl = `https://www.google.com/maps/place/${address.replace(/\s\/\s/g, '+').replace(/\s/g, '+')}+Spokane,WA`;
-          
-          let annualCheck = true;
-          if (annualOnlyCheckbox.checked) {
-            if (!jobIdentifier.includes('=')) {
-              annualCheck = false;
-            }
-          } else if (excludeAnnualCheckbox.checked) {
-            if (jobIdentifier.startsWith('=')) {
-              annualCheck = false;
-            }
+
+        if (includingLine) {
+          jobCount++;
+          total += edge.node.job.total || 0;
+          jobLines += `[**${jobIdentifier}**](${jobberWebUri}) ${geoCode} [${address}](${googleMapsUrl}) - ${workCode}`;
+          const jobdate = formatDate(edge.node.startAt);
+          if (showDatesSelect.value === "all") {
+            jobLines += ` **\`${jobdate}\`**`;
+          } else if (showDatesSelect.value === "weekdayOnly" && !jobdate.startsWith("Sun ")) {
+            jobLines += ` **\`${jobdate}\`**`;
           }
-          
-          if (annualCheck) {
-            jobCount++;
-            total += edge.node.job.total || 0;
-            jobLines += `[**${jobIdentifier}**](${jobberWebUri}) ${geoCode} [${address}](${googleMapsUrl}) - ${workCode}`;
-            const jobdate = formatDate(edge.node.startAt);
-            if (allDatesCheckbox.checked) {
-              jobLines += ` **\`${jobdate}\`**`;
-            } else if (weekdayDatesCheckbox.checked && !jobdate.startsWith("Sun ")) {
-              jobLines += ` **\`${jobdate}\`**`;
-            }
-            if (showValueCheckbox.checked) {
-              jobLines += ` \`$${edge.node.job.total ? edge.node.job.total : '?'}\``;
-            }
-            if (showSalespersonCheckbox.checked) {
-              jobLines += ` \`${salespersonName}\``;
-            }
-            jobLines += '\n\n';
+
+          if (showValueCheckbox.checked) {
+            jobLines += ` \`$${edge.node.job.total ? edge.node.job.total : '?'}\``;
           }
+
+          if (showSalespersonCheckbox.checked) {
+            jobLines += ` \`${salespersonName}\``;
+          }
+          jobLines += '\n\n';
         }
       });
       
@@ -389,8 +498,12 @@
       event.preventDefault();
       fetchVisits();
     });
+    const annualSelect = document.getElementById('annualSelect');
+    annualSelect.addEventListener('change', formatAndDisplay);
     const sortBySelect = document.getElementById("sortBySelect");
+    const showDatesSelect = document.getElementById("showDatesSelect");
     sortBySelect.addEventListener('change', formatAndDisplay);
+    showDatesSelect.addEventListener('change', formatAndDisplay);
     const checkboxes = document.querySelectorAll('input[type="checkbox"]');
     checkboxes.forEach(checkbox => {
       checkbox.addEventListener('change', formatAndDisplay);
