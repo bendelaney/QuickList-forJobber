@@ -102,7 +102,7 @@
 			border-radius: 4px;
 			resize: vertical;
 			font-size: 11px;
-      background-color: #e5e5e5;
+      background-color: #efefef;
       overflow: auto;
       box-shadow: 0 2px 5px inset rgba(0,0,0,0.2);
       &:focus {
@@ -462,6 +462,19 @@
       return output;
     }
 
+    function renderMarkdown() {
+      const output = document.getElementById('output').value;
+      const markdownContainer = document.getElementById('renderedMarkdown');
+      markdownContainer.innerHTML = "";
+      console.log('test');
+      marked.use({
+        gfm: true,
+        breaks: true
+      });
+      let markdownedHTML = marked.parse(output);
+      markdownContainer.innerHTML = markdownedHTML;
+    }
+
     // Format and display the Markdown output.
     function formatAndDisplay() {
       const data = DATA;
@@ -469,22 +482,23 @@
       const markdownOutput = formatJobList(data);
       output.value = "";
       output.value = markdownOutput;
+      output.focus();
       output.select();
       output.setSelectionRange(0, 99999); /* For mobile devices */
       document.execCommand("copy");
 
-      const markdownContainer = document.getElementById('renderedMarkdown');
-      markdownContainer.innerHTML = "";
+      renderMarkdown();
+      // const markdownContainer = document.getElementById('renderedMarkdown');
+      // markdownContainer.innerHTML = "";
 
-      // if (document.getElementById('renderMarkdownCheckbox').checked) {
-        marked.use({
-          gfm: true,
-          breaks: true
-        });
-        let markdownedHTML = marked.parse(markdownOutput);
-        markdownContainer.innerHTML = markdownedHTML;
-      // }
+      // marked.use({
+      //   gfm: true,
+      //   breaks: true
+      // });
+      // let markdownedHTML = marked.parse(markdownOutput);
+      // markdownContainer.innerHTML = markdownedHTML;
     }
+
 
     // Fetch visits from the server and update the page.
     async function fetchVisits() {
@@ -528,7 +542,14 @@
     const sortBySelect = document.getElementById("sortBySelect");
     const showDatesSelect = document.getElementById("showDatesSelect");
     const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+    const outputText = document.getElementById('output');
 
+    outputText.addEventListener('input', () => {
+      const value = outputText.value;
+      if (value) {
+      renderMarkdown();
+      }
+    });
     startDateInput.addEventListener('change', () => {
       STARTDATE = startDateInput.value;
       fetchVisits();
