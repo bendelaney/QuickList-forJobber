@@ -4,77 +4,81 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-  <title>Live Jobber Visit List 👉🏼 Markdown</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+  
+  <title>Jobber Visit List 👉🏼 Markdown</title>
   <style>
 		body {
-			font-family: 'Roboto', sans-serif;
-			background-color: #f4f6f8;
+			font-family: 'Inter', sans-serif;
+			background-color: fff;
 			color: #333;
-			padding: 0 20px;
-			/* max-width: 900px; */
-			margin: 0 auto;
+      margin: 0 auto;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
 		}
-
-		h1 {
-			font-size: 2rem;
-			color: #1a1a1a;
-			margin: 10px 0;
-		}
-
     label {
       font-weight: bold;
+
+      span {font-weight: normal;}
     }
     input[type="checkbox"] {
       margin-right: 10px;
       transform: scale(1.5);
     }
-    .dates {
-      display: flex;
-      align-items: center;
-    }
-    .dates label {
-      margin-right: 5px;
-      flex: 2;
-    }
-    #startDate, #endDate {
-      font-size: 16px;
-      padding: 5px;
-      border-radius: 4px;
-      border: 1px solid #aaa;
-      font-weight: bold;
-      flex: 2;
-    }
 
     #wrapper {
       display: flex;
       justify-content: space-between;
-      margin-top: 20px;
       flex: 1;
       min-height: 0;
     }
+
+    #sidebar {
+      background: #f1f0e9;
+      padding: 20px;
+      border-right: 1px solid rgb(223, 221, 210);
+      max-width: 270px;
+    }
+
+    header h1 {
+			font-size: 20px;
+			color: #1a1a1a;
+			margin: 0 0 20px 0;
+      padding: 0;
+		}
+
     #optionsContainer {
-      margin-bottom: 20px;
-      background: #e5e5e5;  /* Changed from pink to a more subtle color */
-      margin-right: 20px;
       font-size: 0.85em;
-      max-width: 300px;
-      padding: 0 15px;
-      border-radius: 4px;
-      box-shadow: 0 0px 5px rgba(0,0,0,0.5);
-    }
-    #optionsContainer label {
-      margin-right: 5px;
-      flex: 2;
-    }
-    #optionsContainer select {
-      flex: 2;
-    }
-    #optionsContainer p {
-      display: flex;
-      align-items: center;
+
+      .dates {
+        display: flex;
+        align-items: center;
+      }
+      .dates label {
+        margin-right: 5px;
+        flex: 2;
+      }
+      #startDate, #endDate {
+        font-size: 16px;
+        padding: 5px;
+        border-radius: 4px;
+        border: 1px solid #aaa;
+        font-weight: bold;
+        flex: 2;
+      }
+      label {
+        margin-right: 5px;
+        flex: 1;
+      }
+      select {
+        flex: 1.4;
+      }
+      p {
+        margin: 0 0 15px 0;
+        display: flex;
+        align-items: center;
+      }
     }
 
     #outputContainer {
@@ -82,10 +86,13 @@
       display: flex;
       gap: 20px;
       min-height: 0; /* Important for flex children to respect parent height */
-      height: calc(100vh - 150px); /* Adjust based on your header/footer size */
+      height: 100vh;
+      padding: 20px;
+      box-sizing: border-box;
+      overflow: hidden;
     }
 
-    textarea#output {
+    #output {
 			flex: 1;
 			min-height: 100px;
 			font-family: monospace;
@@ -98,6 +105,10 @@
       background-color: #e5e5e5;
       overflow: auto;
       box-shadow: 0 2px 5px inset rgba(0,0,0,0.2);
+      &:focus {
+        outline: none;
+      }
+
 		}
     #renderedMarkdown {
       flex: 1;
@@ -107,31 +118,15 @@
       font-size: 0.85em;
       overflow: auto;
       background-color: white;
+      
+      p {
+        margin: 0;
+        padding: 2px 0;
+      }
     }
-    #renderedMarkdown p {
-      margin: 0;
-      padding: 2px 0;
-    }
-
-		button {
-			display: inline-block;
-			background-color: #007bff;
-			border: none;
-			color: #fff;
-			text-align: center;
-			font-size: 1rem;
-			padding: 12px 24px;
-			border-radius: 4px;
-			cursor: pointer;
-			transition: all 0.3s;
-      width: 100%;
-		}
-
-		button:hover {
-			background-color: #0056b3;
-		}
 
     select {
+      font-size: 13px;
       padding: 10px;
       border-radius: 4px;
       border: 1px solid #aaa;
@@ -215,7 +210,9 @@
       }
 
       const nextSunday = getNextSunday();
+      STARTDATE = nextSunday;
       const followingFriday = getFollowingFriday(nextSunday);
+      ENDDATE = followingFriday;
       document.getElementById('startDate').value = formatDateInput(nextSunday);
       document.getElementById('endDate').value = formatDateInput(followingFriday);
 
@@ -225,68 +222,73 @@
   </script>
 </head>
 <body>
-  <h1>Jobber Visits 👉🏼 Markdown</h1>
-  <p>Select a start and end date to fetch your Jobber visits. (If you aren’t logged in, you will be redirected to Jobber’s login.)</p>
-  
   <div id="wrapper">
-    <div id="optionsContainer">
-      <p class="dates">
-        <label for="startDate">Start Date:</label>
-        <input type="date" id="startDate" name="startDate">
-      </p>
-      <p class="dates">
-        <label for="endDate">End Date:</label>
-        <input type="date" id="endDate" name="endDate">
-      </p>      
-      
-      <button type="button" id="fetchButton">Fetch Visits</button>
-
-      <p>
-        <label for="sortBySelect">Sort by:</label>
-        <select id="sortBySelect">
-          <option value="date">Date</option>
-          <option value="geoCode">GeoCode</option>
-          <option value="value">$ Value</option>
-          <option value="geoCodeThenValue">GeoCode, then $ Value</option>
-          <option value="alphabetical">Alphabetical</option>
-          <option value="salesperson">Salesperson</option>
-        </select>
-      </p>
-
-      <p>
-        <label for="annualSelect">Annual Jobs:</label>
-        <select id="annualSelect">
-          <option value="include" selected>Include Annual Jobs</option>
-          <option value="exclude">Exclude Annual Jobs</option>
-          <option value="excludeUnconfirmed">Exclude Unconfirmed Annual Jobs</option>
-          <option value="annualOnly">Show Only Annual Jobs</option>
-          <option value="annualOnlyConfirmed">Show Only *Confirmed* Annual Jobs</option>
-          <option value="annualOnlyUnconfirmed">Show Only *Unconfirmed* Annual Jobs</option>
-        </select>
-      </p>
-
-      <p>
-        <label for="showDatesSelect">Show Dates:</label>
-        <select id="showDatesSelect">
-          <option value="none" selected>Don't Show Dates</option>
-          <option value="all">Show All Job Dates</option>
-          <option value="weekdayOnly">Show Only Weekday Job Dates</option>
-        </select>
-      </p>
-      <p><input type="checkbox" id="showValueCheckbox"><label for="showValueCheckbox">Show $ Value</label></p>
-      <p><input type="checkbox" id="showSalespersonCheckbox"><label for="showSalespersonCheckbox">Show Salesperson</label></p>
-      <p><input type="checkbox" id="renderMarkdownCheckbox" checked><label for="renderMarkdownCheckbox">Show Rendered Markdown</label></p>
-      <p><input type="checkbox" id="showRangeStatsCheckbox" checked><label for="showRangeStatsCheckbox">Show Range Stats</label></p>
+    <div id="sidebar">
+      <header>
+        <h1>Jobber Visits 👉🏼 Markdown</h1>
+      </header>
+  
+      <div id="optionsContainer">
+        <p class="dates">
+          <label for="startDate">Start Date:</label>
+          <input type="date" id="startDate" name="startDate">
+        </p>
+        <p class="dates">
+          <label for="endDate">End Date:</label>
+          <input type="date" id="endDate" name="endDate">
+        </p>      
+        
+        <h4>Output Options:</h4>
+        <p>
+          <label for="sortBySelect">Sort by:</label>
+          <select id="sortBySelect">
+            <option value="date">Date</option>
+            <option value="geoCode">GeoCode</option>
+            <option value="value">$ Value</option>
+            <option value="geoCodeThenValue">GeoCode, then $ Value</option>
+            <option value="alphabetical">Alphabetical</option>
+            <option value="salesperson">Salesperson</option>
+          </select>
+        </p>
+  
+        <p>
+          <label for="annualSelect">Annual Jobs:</label>
+          <select id="annualSelect">
+            <option value="include" selected>Include Annual Jobs</option>
+            <option value="exclude">Exclude Annual Jobs</option>
+            <option value="excludeUnconfirmed">Exclude Unconfirmed Annual Jobs</option>
+            <option value="annualOnly">Show Only Annual Jobs</option>
+            <option value="annualOnlyConfirmed">Show Only *Confirmed* Annual Jobs</option>
+            <option value="annualOnlyUnconfirmed">Show Only *Unconfirmed* Annual Jobs</option>
+          </select>
+        </p>
+  
+        <p>
+          <label for="showDatesSelect">Show Dates:</label>
+          <select id="showDatesSelect">
+            <option value="none" selected>Don't Show Dates</option>
+            <option value="all">Show All Job Dates</option>
+            <option value="weekdayOnly">Show Only Weekday Job Dates</option>
+          </select>
+        </p>
+        <p><input type="checkbox" id="showValueCheckbox"><label for="showValueCheckbox">Show $ Value</label></p>
+        <p><input type="checkbox" id="showSalespersonCheckbox"><label for="showSalespersonCheckbox">Show Salesperson</label></p>
+        <p><input type="checkbox" id="showRangeInfoCheckbox" checked><label for="showRangeInfoCheckbox">Include Range Info <span>(at top of list)</span></label></p>
+        <!-- <p><input type="checkbox" id="renderMarkdownCheckbox" checked><label for="renderMarkdownCheckbox">Show Rendered Markdown</label></p> -->
+      </div>
     </div>
 
     <div id="outputContainer">
-      <div id="renderedMarkdown"></div>
       <textarea id="output" placeholder="Your Markdown will go here."></textarea>
+      <div id="renderedMarkdown"></div>
     </div>
   </div>
 
   <script>
     let DATA = null;
+    let STARTDATE = null;
+    let ENDDATE = null;
+
     // Helper function to format a date string into a friendly format.
     function formatDate(dateString) {
       const date = new Date(dateString);
@@ -314,7 +316,7 @@
       const showDatesSelect = document.getElementById("showDatesSelect");
       const showValueCheckbox = document.getElementById("showValueCheckbox");
       const showSalespersonCheckbox = document.getElementById("showSalespersonCheckbox");
-      const showRangeStatsCheckbox = document.getElementById("showRangeStatsCheckbox");
+      const showRangeInfoCheckbox = document.getElementById("showRangeInfoCheckbox");
 
       let total = 0;
       let jobCount = 0;
@@ -386,11 +388,6 @@
         const googleMapsUrl = `https://www.google.com/maps/place/${address.replace(/\s\/\s/g, '+').replace(/\s/g, '+')}+Spokane,WA`;
 
         // Annual selector
-        // include
-        // exclude
-        // excludeUnconfirmed
-        // annualOnly
-        // annualOnlyConfirmed
         if (annualSelect.value === "include") {
           includingLine = true;
         } 
@@ -446,8 +443,15 @@
         }
       });
       
-      if (showRangeStatsCheckbox.checked) {
-        output += `**\`${jobCount} Jobs\`** **\`$${total}\`**\n\n`;
+      if (showRangeInfoCheckbox.checked) {
+        const formattedStartDate = formatDate(STARTDATE);
+        const formattedEndDate = formatDate(ENDDATE);
+        // output += `**\`${jobCount} Jobs\`** **\`$${total}\`**\n\n`;
+        if (showValueCheckbox.checked) {
+          output += `## **\`${formattedStartDate} - ${formattedEndDate}\`** **\`${jobCount} Jobs\`** **\`$${total}\`**\n\n`;
+        } else {
+          output += `## **\`${formattedStartDate} - ${formattedEndDate}\`** **\`${jobCount} Jobs\`**\n\n`;
+        }
       }
       
       output += jobLines;
@@ -469,14 +473,14 @@
       const markdownContainer = document.getElementById('renderedMarkdown');
       markdownContainer.innerHTML = "";
 
-      if (document.getElementById('renderMarkdownCheckbox').checked) {
+      // if (document.getElementById('renderMarkdownCheckbox').checked) {
         marked.use({
           gfm: true,
           breaks: true
         });
         let markdownedHTML = marked.parse(markdownOutput);
         markdownContainer.innerHTML = markdownedHTML;
-      }
+      // }
     }
 
     // Fetch visits from the server and update the page.
@@ -515,18 +519,24 @@
       }
     }
     
-    // Event listeners for the fetch button and checkboxes.
-    document.getElementById('fetchButton').addEventListener('click', (event) => {
-      event.preventDefault();
-      fetchVisits();
-    });
+    const startDateInput = document.getElementById('startDate');
+    const endDateInput = document.getElementById('endDate');
     const annualSelect = document.getElementById('annualSelect');
-    annualSelect.addEventListener('change', formatAndDisplay);
     const sortBySelect = document.getElementById("sortBySelect");
     const showDatesSelect = document.getElementById("showDatesSelect");
+    const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+
+    startDateInput.addEventListener('change', () => {
+      STARTDATE = startDateInput.value;
+      fetchVisits();
+    });
+    endDateInput.addEventListener('change', () => {
+      ENDDATE = endDateInput.value;
+      fetchVisits();
+    });
+    annualSelect.addEventListener('change', formatAndDisplay);
     sortBySelect.addEventListener('change', formatAndDisplay);
     showDatesSelect.addEventListener('change', formatAndDisplay);
-    const checkboxes = document.querySelectorAll('input[type="checkbox"]');
     checkboxes.forEach(checkbox => {
       checkbox.addEventListener('change', formatAndDisplay);
     });
