@@ -220,6 +220,8 @@
       document.getElementById('endDate').value = formatDateInput(followingFriday);
 
       // Auto load fetch visits
+      const settings = loadSettings();
+      applySettings(settings);
       fetchVisits();
     });
   </script>
@@ -291,6 +293,53 @@
     let DATA = null;
     let STARTDATE = null;
     let ENDDATE = null;
+
+    const DEFAULT_SETTINGS = {
+      sortBy: "date",
+      annual: "include",
+      showDates: "none",
+      showValue: false,
+      showSalesperson: false,
+      showRangeInfo: true
+    };
+
+    // Function to save current settings to localStorage
+    function saveSettings() {
+      const currentSettings = {
+        sortBy: sortBySelect.value,
+        annual: annualSelect.value,
+        showDates: showDatesSelect.value,
+        showValue: showValueCheckbox.checked,
+        showSalesperson: showSalespersonCheckbox.checked,
+        showRangeInfo: showRangeInfoCheckbox.checked
+      };
+      
+      localStorage.setItem('jobberSettings', JSON.stringify(currentSettings));
+      console.log('Settings saved:', currentSettings);
+    }
+
+    // Function to load settings from localStorage
+    function loadSettings() {
+      try {
+        const savedSettings = localStorage.getItem('jobberSettings');
+        if (savedSettings) {
+          return JSON.parse(savedSettings);
+        }
+      } catch (error) {
+        console.error('Error loading settings:', error);
+      }
+      return DEFAULT_SETTINGS; // Return defaults if nothing saved or error
+    }
+
+    // Function to apply settings to form elements
+    function applySettings(settings) {
+      sortBySelect.value = settings.sortBy;
+      annualSelect.value = settings.annual;
+      showDatesSelect.value = settings.showDates;
+      showValueCheckbox.checked = settings.showValue;
+      showSalespersonCheckbox.checked = settings.showSalesperson;
+      showRangeInfoCheckbox.checked = settings.showRangeInfo;
+    }
 
     // Helper function to format a date string into a friendly format.
     function formatDate(dateString) {
@@ -550,19 +599,36 @@
       renderMarkdown();
       }
     });
+
     startDateInput.addEventListener('change', () => {
       STARTDATE = startDateInput.value;
       fetchVisits();
     });
+
     endDateInput.addEventListener('change', () => {
       ENDDATE = endDateInput.value;
       fetchVisits();
     });
-    annualSelect.addEventListener('change', formatAndDisplay);
-    sortBySelect.addEventListener('change', formatAndDisplay);
-    showDatesSelect.addEventListener('change', formatAndDisplay);
+    annualSelect.addEventListener('change', () => {
+      formatAndDisplay();
+      saveSettings();
+    });
+
+    sortBySelect.addEventListener('change', () => {
+      formatAndDisplay();
+      saveSettings();
+    });
+
+    showDatesSelect.addEventListener('change', () => {
+      formatAndDisplay();
+      saveSettings();
+    });
+
     checkboxes.forEach(checkbox => {
-      checkbox.addEventListener('change', formatAndDisplay);
+      checkbox.addEventListener('change', () => {
+        formatAndDisplay();
+        saveSettings();
+      });
     });
   </script>
 </body>
