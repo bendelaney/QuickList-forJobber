@@ -2,11 +2,11 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
   
-  <title>Jobber Visit List 👉🏼 Markdown</title>
+  <title>Jobber Visit 👉🏼 Text List</title>
   <style>
 		body {
 			font-family: 'Inter', sans-serif;
@@ -38,7 +38,7 @@
       background: #f1f0e9;
       padding: 20px;
       border-right: 1px solid rgb(223, 221, 210);
-      max-width: 270px;
+      max-width: 400px;
     }
 
     header h1 {
@@ -84,47 +84,58 @@
     #outputContainer {
       flex: 3;
       display: flex;
-      gap: 20px;
       min-height: 0; /* Important for flex children to respect parent height */
       height: 100vh;
-      padding: 20px;
       box-sizing: border-box;
       overflow: hidden;
+      flex-direction: column;
+      position: relative;
     }
 
-    #output {
-			flex: 1;
-			min-height: 100px;
-			font-family: monospace;
-			box-sizing: border-box;
-			padding: 12px;
-			border: 1px solid #ccc;
-			border-radius: 4px;
-			resize: vertical;
-			font-size: 11px;
+    .output {
+      flex: 1 1 0;
+      min-height: 100px;
+      font-family: monospace;
+      box-sizing: border-box;
+      padding: 12px;
+      border: none;
+      resize: none;
+      font-size: 11px;
       background-color: #efefef;
       overflow: auto;
       box-shadow: 0 2px 5px inset rgba(0,0,0,0.2);
       &:focus {
         outline: none;
       }
+    }
 
-		}
     #renderedMarkdown {
-      flex: 1;
+      flex: 1 1 0;
+      min-height: 100px;
+      box-sizing: border-box;
       padding: 12px;
-      border-radius: 4px;
-      border: 1px solid #ccc;
+      border: none;
+      border-radius: 0;
       font-size: 0.85em;
+      background-color: #efefef;
       overflow: auto;
       background-color: white;
+      box-shadow: 0 2px 5px inset rgba(0,0,0,0.2);
       
       h1, h2, h3 {
         margin-top: 0;
+        font-size: 1.25em;
       }
       p {
         margin: 0;
         padding: 2px 0;
+        line-height: 1.75;
+      }
+      code {
+        padding: 1px 4px;
+        background-color: #eee;
+        border: 1px solid #ccc;
+        border-radius: 3px;
       }
     }
 
@@ -135,19 +146,7 @@
       border: 1px solid #aaa;
       width: 100%;
     }
-    #renderedMarkdown {
-			p {
-				line-height: 1.75;
-			}
-
-			code {
-				padding: 1px 4px;
-				background-color: #eee;
-				border: 1px solid #ccc;
-				border-radius: 3px;
-			}
-		}
-
+    
     @media (max-width: 768px) {
       #wrapper {
         flex-direction: column;
@@ -159,15 +158,120 @@
         margin-bottom: 20px;
       }
       
+      #sidebar {
+        width: 100%;
+        max-width: none;
+        border-right: none;
+        border-bottom: 1px solid rgb(223, 221, 210);
+        padding: 16px 10px;
+        box-sizing: border-box;
+      }
+      
       #outputContainer {
         flex-direction: column;
         height: auto;
         max-height: 70vh;
+        padding: 0;
+        gap: 0;
       }
       
-      textarea#output, #renderedMarkdown {
+      textarea.output, #renderedMarkdown {
         width: 100%;
         min-height: 200px;
+        border-radius: 0;
+      }
+    }
+    
+    /* Copy button styles */
+    .copy-btn-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: relative;
+      padding: 10px;
+
+      & > :last-child {
+        margin-left: auto;
+      }
+    }
+
+    .copy-button, .preview-button {
+      background: #f1f0e9;
+      border: 1px solid #bbb;
+      border-radius: 4px;
+      padding: 6px 14px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: background 0.2s;
+      margin-right: 2px;
+    }
+    .preview-button.active {
+      background: rgb(56, 133, 35);
+      color: #fff;
+      border: 1px solid #aaa;
+      box-shadow: inset 0 0 5px rgb(30, 91, 14);
+    }
+    #copyOutputBtn:active {
+      background: #e0dfd6;
+    }
+
+    @media (max-width: 768px) {
+      .copy-btn-container {
+        button {
+          margin-right: 0;
+        }
+      }
+      #copyOutputBtn {
+        font-size: 15px;
+        padding: 10px 18px;
+      }
+    }
+
+    /* Tab styles */
+    .tab-bar {
+      display: flex;
+      border-bottom: 1px solid #ccc;
+      background: #f8f8f8;
+      border-radius: 4px 4px 0 0;
+    }
+    .tab-btn {
+      flex: 1;
+      padding: 10px 0;
+      background: none;
+      border: none;
+      font-size: 1em;
+      font-weight: bold;
+      color: #888;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+      outline: none;
+    }
+    .tab-btn.active {
+      background: #fff;
+      color: #222;
+      border-bottom: 4px solid #388523;
+      z-index: 1;
+    }
+    .tab-btn:not(.active):hover {
+      background: #f1f0e9;
+      color: #444;
+    }
+
+    /* Hide inactive tab content */
+    .tab-content {
+      display: none;
+      height: 100%;
+    }
+    .tab-content.active {
+      display: flex;
+      flex: 1;
+      flex-direction: column;
+      height: 100%;
+    }
+
+    @media (max-width: 768px) {
+      .tab-bar {
+        font-size: 1.1em;
       }
     }
   </style>
@@ -230,7 +334,7 @@
   <div id="wrapper">
     <div id="sidebar">
       <header>
-        <h1>Jobber Visits 👉🏼 Markdown</h1>
+        <h1>Jobber Visit 👉🏼 Text List</h1>
       </header>
   
       <div id="optionsContainer">
@@ -279,13 +383,28 @@
         <p><input type="checkbox" id="showValueCheckbox"><label for="showValueCheckbox">Show $ Value</label></p>
         <p><input type="checkbox" id="showSalespersonCheckbox"><label for="showSalespersonCheckbox">Show Salesperson</label></p>
         <p><input type="checkbox" id="showRangeInfoCheckbox" checked><label for="showRangeInfoCheckbox">Include Range Info <span>(at top of list)</span></label></p>
-        <!-- <p><input type="checkbox" id="renderMarkdownCheckbox" checked><label for="renderMarkdownCheckbox">Show Rendered Markdown</label></p> -->
       </div>
     </div>
 
     <div id="outputContainer">
-      <textarea id="output" placeholder="Your Markdown will go here."></textarea>
-      <div id="renderedMarkdown"></div>
+      <div class="tab-bar">
+        <button class="tab-btn active" id="markdownTabBtn" type="button">Markdown</button>
+        <button class="tab-btn" id="plaintextTabBtn" type="button">Plain Text</button>
+      </div>
+      <div class="tab-content active" id="markdownTab">
+        <div class="copy-btn-container">
+          <button id="previewMarkdownBtn" class="preview-button" title="Preview Markdown">Preview</button>
+          <button id="copyMarkdownOutputBtn" class="copy-button" title="Copy Markdown">Copy Markdown</button>
+        </div>
+        <textarea id="markdown-output" class="output" placeholder="Your Markdown will go here."></textarea>
+        <div id="renderedMarkdown" style="display:none;"></div>
+      </div>
+      <div class="tab-content" id="plaintextTab">
+        <div class="copy-btn-container">
+          <button id="copyPlaintextOutputBtn" class="copy-button" title="Copy Text">Copy Text</button>
+        </div>
+        <textarea id="plaintext-output" class="output" placeholder="Your text will go here."></textarea>
+      </div>
     </div>
   </div>
 
@@ -353,7 +472,8 @@
     }
 
     // Function to format the Jobber visits JSON into Markdown.
-    function formatJobList(data) {
+    function formatJobList(data, formatType) {
+      formatType = formatType || 'markdown';
       const visits = data.data.visits.edges;
       
       // Sort visits based on a "geo code" extracted from the title.
@@ -438,6 +558,7 @@
         const workCode = titleParts[3] ? titleParts[3].trim() : '?';
         const jobberWebUri = edge.node.job.jobberWebUri;
         const googleMapsUrl = `https://www.google.com/maps/place/${address.replace(/\s\/\s/g, '+').replace(/\s/g, '+')}+Spokane,WA`;
+        const jobdate = formatDate(edge.node.startAt);
 
         // Annual selector
         if (annualSelect.value === "include") {
@@ -476,76 +597,98 @@
         if (includingLine) {
           jobCount++;
           total += edge.node.job.total || 0;
-          jobLines += `[**${jobIdentifier}**](${jobberWebUri}) ${geoCode} [${address}](${googleMapsUrl}) - ${workCode}`;
-          const jobdate = formatDate(edge.node.startAt);
-          if (showDatesSelect.value === "all") {
-            jobLines += ` **\`${jobdate}\`**`;
-          } else if (showDatesSelect.value === "weekdayOnly" && !jobdate.startsWith("Sun ")) {
-            jobLines += ` **\`${jobdate}\`**`;
+
+          // If formatType is 'markdown', format the output as Markdown.
+          if (formatType === 'markdown') {
+            // Format the job line as Markdown.
+            jobLines += `[**${jobIdentifier}**](${jobberWebUri}) ${geoCode} [${address}](${googleMapsUrl}) - ${workCode}`;
+
+            // Dates
+            if (showDatesSelect.value === "all") {
+              jobLines += ` **\`${jobdate}\`**`;
+            } else if (showDatesSelect.value === "weekdayOnly" && !jobdate.startsWith("Sun ")) {
+              jobLines += ` **\`${jobdate}\`**`;
+            }
+
+            // Value and Salesperson checkboxes
+            if (showValueCheckbox.checked) {
+              jobLines += ` \`$${edge.node.job.total ? edge.node.job.total : '?'}\``;
+            }
+            if (showSalespersonCheckbox.checked) {
+              jobLines += ` \`${salespersonName}\``;
+            }
+          } else if (formatType === 'plaintext') {
+            jobLines += `${jobIdentifier} ${geoCode} ${address} - ${workCode}`;
+            if (showDatesSelect.value === "all") {
+              jobLines += ` ${jobdate}`;
+            } else if (showDatesSelect.value === "weekdayOnly" && !jobdate.startsWith("Sun ")) {
+              jobLines += ` ${jobdate}`;
+            }
+            if (showValueCheckbox.checked) {
+              jobLines += ` - $${edge.node.job.total ? edge.node.job.total : '?'}`;
+            }
+            if (showSalespersonCheckbox.checked) {
+              jobLines += ` - ${salespersonName}`;
+            }
           }
 
-          if (showValueCheckbox.checked) {
-            jobLines += ` \`$${edge.node.job.total ? edge.node.job.total : '?'}\``;
-          }
-
-          if (showSalespersonCheckbox.checked) {
-            jobLines += ` \`${salespersonName}\``;
-          }
           jobLines += '\n\n';
         }
       });
       
-      if (showRangeInfoCheckbox.checked) {
-        const formattedStartDate = formatDate(STARTDATE);
-        const formattedEndDate = formatDate(ENDDATE);
-        // output += `**\`${jobCount} Jobs\`** **\`$${total}\`**\n\n`;
-        if (showValueCheckbox.checked) {
-          output += `## **\`${formattedStartDate} - ${formattedEndDate}\`** **\`${jobCount} Jobs\`** **\`$${total}\`**\n\n`;
-        } else {
-          output += `## **\`${formattedStartDate} - ${formattedEndDate}\`** **\`${jobCount} Jobs\`**\n\n`;
+      if (formatType === 'markdown') {
+        // Range info
+        if (showRangeInfoCheckbox.checked) {
+          const formattedStartDate = formatDate(STARTDATE);
+          const formattedEndDate = formatDate(ENDDATE);
+          if (showValueCheckbox.checked) {
+            output += `# **${formattedStartDate} - ${formattedEndDate}** **\`${jobCount} Jobs\`** **\`$${total}\`**\n\n`;
+          } else {
+            output += `# **${formattedStartDate} - ${formattedEndDate}** **\`${jobCount} Jobs\`**\n\n`;
+          }
+        }
+      } else if (formatType === 'plaintext') {
+        // Range info
+        if (showRangeInfoCheckbox.checked) {
+          const formattedStartDate = formatDate(STARTDATE);
+          const formattedEndDate = formatDate(ENDDATE);
+          if (showValueCheckbox.checked) {
+            output += `${formattedStartDate} - ${formattedEndDate}, ${jobCount} Jobs, $${total}\n\n------------------------------\n\n`;
+          } else {
+            output += `${formattedStartDate} - ${formattedEndDate}, ${jobCount} Jobs\n\n------------------------------\n\n`;
+          }
         }
       }
-      
+
       output += jobLines;
       
       return output;
     }
 
     function renderMarkdown() {
-      const output = document.getElementById('output').value;
+      const markdownOutput = document.getElementById('markdown-output').value;
       const markdownContainer = document.getElementById('renderedMarkdown');
       markdownContainer.innerHTML = "";
-      console.log('test');
-      marked.use({
+      let markdownedHTML = marked.use({
         gfm: true,
         breaks: true
-      });
-      let markdownedHTML = marked.parse(output);
+      }).parse(markdownOutput);
       markdownContainer.innerHTML = markdownedHTML;
     }
 
     // Format and display the Markdown output.
     function formatAndDisplay() {
       const data = DATA;
-      const output = document.getElementById('output');
-      const markdownOutput = formatJobList(data);
-      output.value = "";
-      output.value = markdownOutput;
-      output.focus();
-      output.select();
-      output.setSelectionRange(0, 99999); /* For mobile devices */
-      document.execCommand("copy");
+      // const markdownOutput = document.getElementById('markdown-output');
+      const plainTextOutput = document.getElementById('plaintext-output');
+      const formattedMarkdown = formatJobList(data, 'markdown');
+      const formattedPlainText = formatJobList(data, 'plaintext');
+      markdownOutput.value = "";
+      markdownOutput.value = formattedMarkdown;
+      plainTextOutput.value = "";
+      plainTextOutput.value = formattedPlainText;
 
       renderMarkdown();
-      // const markdownContainer = document.getElementById('renderedMarkdown');
-      // markdownContainer.innerHTML = "";
-
-      // marked.use({
-      //   gfm: true,
-      //   breaks: true
-      // });
-      // let markdownedHTML = marked.parse(markdownOutput);
-      // markdownContainer.innerHTML = markdownedHTML;
     }
 
 
@@ -591,10 +734,10 @@
     const sortBySelect = document.getElementById("sortBySelect");
     const showDatesSelect = document.getElementById("showDatesSelect");
     const checkboxes = document.querySelectorAll('input[type="checkbox"]');
-    const outputText = document.getElementById('output');
+    const markdownOutput = document.getElementById('markdown-output');
 
-    outputText.addEventListener('input', () => {
-      const value = outputText.value;
+    markdownOutput.addEventListener('input', () => {
+      const value = markdownOutput.value;
       if (value) {
       renderMarkdown();
       }
@@ -629,6 +772,88 @@
         formatAndDisplay();
         saveSettings();
       });
+    });
+
+    // Copy button logic
+    document.addEventListener('DOMContentLoaded', function() {
+      // Markdown copy button
+      const copyMarkdownBtn = document.getElementById('copyMarkdownOutputBtn');
+      const markdownOutput = document.getElementById('markdown-output');
+      if (copyMarkdownBtn && markdownOutput) {
+        copyMarkdownBtn.addEventListener('click', function() {
+          markdownOutput.select();
+          markdownOutput.setSelectionRange(0, 99999);
+          document.execCommand('copy');
+          copyMarkdownBtn.textContent = 'Copied!';
+          setTimeout(() => { copyMarkdownBtn.textContent = 'Copy Markdown'; }, 1200);
+        });
+      }
+
+      // Plaintext copy button
+      const copyPlaintextBtn = document.getElementById('copyPlaintextOutputBtn');
+      const plaintextOutput = document.getElementById('plaintext-output');
+      if (copyPlaintextBtn && plaintextOutput) {
+        copyPlaintextBtn.addEventListener('click', function() {
+          plaintextOutput.select();
+          plaintextOutput.setSelectionRange(0, 99999);
+          document.execCommand('copy');
+          copyPlaintextBtn.textContent = 'Copied!';
+          setTimeout(() => { copyPlaintextBtn.textContent = 'Copy Text'; }, 1200);
+        });
+      }
+
+      const markdownTabBtn = document.getElementById('markdownTabBtn');
+      const plaintextTabBtn = document.getElementById('plaintextTabBtn');
+      const markdownTab = document.getElementById('markdownTab');
+      const plaintextTab = document.getElementById('plaintextTab');
+
+      function activateTab(tab) {
+        if (tab === 'markdown') {
+          markdownTabBtn.classList.add('active');
+          plaintextTabBtn.classList.remove('active');
+          markdownTab.classList.add('active');
+          plaintextTab.classList.remove('active');
+        } else if (tab === 'plaintext') {
+          markdownTabBtn.classList.remove('active');
+          plaintextTabBtn.classList.add('active');
+          markdownTab.classList.remove('active');
+          plaintextTab.classList.add('active');
+        }
+      }
+
+      markdownTabBtn.addEventListener('click', () => activateTab('markdown'));
+      plaintextTabBtn.addEventListener('click', () => activateTab('plaintext'));
+
+      // Markdown preview toggle logic
+      const previewMarkdownBtn = document.getElementById('previewMarkdownBtn');
+      const renderedMarkdown = document.getElementById('renderedMarkdown');
+      let isMarkdownPreviewing = false;
+
+      function updateMarkdownPreview() {
+        if (isMarkdownPreviewing) {
+          // Show rendered markdown, hide textarea
+          markdownOutput.style.display = 'none';
+          renderedMarkdown.style.display = '';
+          previewMarkdownBtn.classList.add('active');
+          // Render markdown
+          renderedMarkdown.innerHTML = marked.parse(markdownOutput.value, { gfm: true, breaks: true });
+        } else {
+          // Show textarea, hide rendered markdown
+          markdownOutput.style.display = '';
+          renderedMarkdown.style.display = 'none';
+          previewMarkdownBtn.classList.remove('active');
+        }
+      }
+
+      if (previewMarkdownBtn) {
+        previewMarkdownBtn.addEventListener('click', function() {
+          isMarkdownPreviewing = !isMarkdownPreviewing;
+          updateMarkdownPreview();
+        });
+      }
+
+      // Initialize preview state on load
+      updateMarkdownPreview();
     });
   </script>
 </body>
