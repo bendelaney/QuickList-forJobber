@@ -779,11 +779,25 @@
       // Markdown copy button
       const copyMarkdownBtn = document.getElementById('copyMarkdownOutputBtn');
       const markdownOutput = document.getElementById('markdown-output');
-      if (copyMarkdownBtn && markdownOutput) {
+      const renderedMarkdown = document.getElementById('renderedMarkdown');
+      if (copyMarkdownBtn && markdownOutput && renderedMarkdown) {
         copyMarkdownBtn.addEventListener('click', function() {
+          // If textarea is hidden, temporarily show it off-screen for copy
+          let restoreDisplay = null;
+          if (markdownOutput.style.display === 'none') {
+            restoreDisplay = markdownOutput.style.display;
+            markdownOutput.style.position = 'absolute';
+            markdownOutput.style.left = '-9999px';
+            markdownOutput.style.display = 'block';
+          }
           markdownOutput.select();
           markdownOutput.setSelectionRange(0, 99999);
           document.execCommand('copy');
+          if (restoreDisplay !== null) {
+            markdownOutput.style.display = restoreDisplay;
+            markdownOutput.style.position = '';
+            markdownOutput.style.left = '';
+          }
           copyMarkdownBtn.textContent = 'Copied!';
           setTimeout(() => { copyMarkdownBtn.textContent = 'Copy Markdown'; }, 1200);
         });
@@ -826,7 +840,6 @@
 
       // Markdown preview toggle logic
       const previewMarkdownBtn = document.getElementById('previewMarkdownBtn');
-      const renderedMarkdown = document.getElementById('renderedMarkdown');
       let isMarkdownPreviewing = false;
 
       function updateMarkdownPreview() {
