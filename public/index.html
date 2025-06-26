@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
-    <style>
+  <style>
 		body {
 			font-family: 'Inter', sans-serif;
 			background-color: fff;
@@ -697,24 +697,29 @@
         alert("Please select both start and end dates.");
         return;
       }
-
+    
+      // Add one day to end date to ensure we capture the full end date
+      const endDateObj = new Date(endDate);
+      endDateObj.setDate(endDateObj.getDate() + 1);
+      const extendedEndDate = endDateObj.toISOString().split('T')[0];
+    
       // Fetch the visits from the server.
       try {
         const response = await fetch(
-          `/api/visits?startDate=${encodeURIComponent(startDate + "T00:00:00")}&endDate=${encodeURIComponent(endDate + "T23:59:59")}`,
+          `/api/visits?startDate=${encodeURIComponent(startDate + "T00:00:00")}&endDate=${encodeURIComponent(extendedEndDate + "T00:00:00")}`,
           { headers: { 'Accept': 'application/json' } }
         );
-
+    
         // If not authenticated, redirect to OAuth login.
         if (response.status === 401) {
           window.location.href = '/auth/jobber';
           return;
         }
-
+    
         if (!response.ok) {
           throw new Error("Network response was not ok.");
         }
-
+    
         const data = await response.json();
         console.log(data);
         DATA = data;
