@@ -380,7 +380,26 @@
         <p><input type="checkbox" id="showValueCheckbox"><label for="showValueCheckbox">Show $ Value</label></p>
         <p><input type="checkbox" id="showSalespersonCheckbox"><label for="showSalespersonCheckbox">Show Salesperson</label></p>
         <p><input type="checkbox" id="showRangeInfoCheckbox" checked><label for="showRangeInfoCheckbox">Include Range Info <span>(at top of list)</span></label></p>
+
+        <p>
+          <button id="refreshDataBtn" style="
+            background: #388523; 
+            color: white; 
+            border: 1px solid #2a6619; 
+            border-radius: 4px; 
+            padding: 10px 20px; 
+            font-size: 13px; 
+            font-weight: bold; 
+            cursor: pointer; 
+            width: 100%;
+            transition: background 0.2s;
+          " onmouseover="this.style.background='#2a6619'" onmouseout="this.style.background='#388523'">
+            Fetch Data
+          </button>
+        </p>
       </div>
+
+      
     </div>
 
     <div id="outputContainer">
@@ -776,6 +795,24 @@
       });
     });
 
+    // Refresh button logic
+    document.getElementById('refreshDataBtn').addEventListener('click', function() {
+      const btn = this;
+      const originalText = btn.textContent;
+      
+      // Show loading state
+      btn.textContent = '⟳ Refreshing...';
+      btn.disabled = true;
+      btn.style.background = '#666';
+      
+      // Fetch new data
+      fetchVisits().finally(() => {
+        // Reset button state
+        btn.textContent = originalText;
+        btn.disabled = false;
+        btn.style.background = '#388523';
+      });
+    });
     // Copy button logic
     document.addEventListener('DOMContentLoaded', function() {
       // Markdown copy button
