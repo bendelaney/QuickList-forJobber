@@ -98,6 +98,7 @@ app.get('/api/visits', ensureAuthenticated, async (req, res) => {
               title
               startAt
               job {
+                jobType
                 jobberWebUri
                 total
                 salesperson {
