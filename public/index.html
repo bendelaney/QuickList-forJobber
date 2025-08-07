@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
   <style>
 		body {
@@ -36,7 +38,8 @@
       background: #f1f0e9;
       padding: 20px;
       border-right: 1px solid rgb(223, 221, 210);
-      max-width: 400px;
+      /* max-width: 400px; */
+      width: 308px;
     }
 
     header h1 {
@@ -49,22 +52,29 @@
     #optionsContainer {
       font-size: 0.85em;
 
-      .dates {
-        display: flex;
-        align-items: center;
+      .calendar-container {
+        margin-bottom: 20px;
       }
-      .dates label {
-        margin-right: 5px;
-        flex: 2;
-      }
-      #startDate, #endDate {
-        font-size: 16px;
-        padding: 5px;
-        border-radius: 4px;
-        border: 1px solid #aaa;
+      
+      .calendar-label {
         font-weight: bold;
-        flex: 2;
+        margin-bottom: 8px;
+        display: block;
+        font-size: 14px;
       }
+      
+      .flatpickr-calendar {
+        margin: 0 auto;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        border-radius: 6px;
+        font-size: 13px;
+      }
+      
+      .flatpickr-calendar.inline {
+        position: relative;
+        display: block;
+      }
+
       label {
         margin-right: 5px;
         flex: 1;
@@ -227,6 +237,51 @@
         font-size: 1.1em;
       }
     }
+
+    /* Calendar stuff */
+    .flatpickr-calendar.arrowTop:before,
+    .flatpickr-calendar.arrowTop:after {display: none;}
+    .flatpickr-monthDropdown-months, .numInput {
+      font-size: 16px !important;
+    }
+
+    .flatpickr-day.selected,
+    .flatpickr-day.selected.startRange,
+    .flatpickr-day.selected.endRange,
+    .flatpickr-day.startRange,
+    .flatpickr-day.endRange,
+    .flatpickr-day.startRange:hover,
+    .flatpickr-day.endRange:hover {
+      background: rgb(56, 133, 35) !important;
+      color: #fff;
+      font-weight: bold;
+      border-color: rgb(56, 133, 35) !important;
+    }
+    .flatpickr-day.inRange {
+      background: rgb(138, 198, 121);
+      border-width: 1px;
+      border-style: solid;
+      border-color: rgb(138, 198, 121);
+      color: rgb(56, 133, 35);
+      -webkit-box-shadow: -5px 0 0 rgb(138, 198, 121),5px 0 0 rgb(138, 198, 121);
+      box-shadow: -5px 0 0 rgb(138, 198, 121),5px 0 0 rgb(138, 198, 121);
+    }
+    .flatpickr-day.today {
+      border-color: rgb(56, 133, 35);
+      border-width: 2px;
+      border-style: dotted;
+    }
+    .flatpickr-day.inRange.today {
+      background: rgb(138, 198, 121);
+      border-color: rgb(56, 133, 35);
+      border-width: 2px;
+      border-style: dotted;
+    }
+    .flatpickr-day.selected.startRange + .endRange:not(:nth-child(7n+1)), 
+    .flatpickr-day.startRange.startRange + .endRange:not(:nth-child(7n+1)), 
+    .flatpickr-day.endRange.startRange + .endRange:not(:nth-child(7n+1)) {
+      box-shadow: -10px 0 0 rgb(138, 198, 121);
+    }
   </style>
   <script>
     // Pre-authentication: On page load, check if the user is authenticated.
@@ -261,20 +316,24 @@
         return friday;
       }
 
-      // Format a date as YYYY-MM-DD for the date input.
-      function formatDateInput(date) {
-        const year = date.getFullYear();
-        const month = (date.getMonth() + 1).toString().padStart(2, '0');
-        const day = date.getDate().toString().padStart(2, '0');
-        return `${year}-${month}-${day}`;
-      }
-
       const nextSunday = getNextSunday();
       STARTDATE = nextSunday;
       const followingFriday = getFollowingFriday(nextSunday);
       ENDDATE = followingFriday;
-      document.getElementById('startDate').value = formatDateInput(nextSunday);
-      document.getElementById('endDate').value = formatDateInput(followingFriday);
+
+      // Initialize single Flatpickr calendar with range selection
+      const dateRangePicker = flatpickr("#dateRangeCalendar", {
+        inline: true,
+        mode: "range",
+        defaultDate: [nextSunday, followingFriday],
+        onChange: function(selectedDates, dateStr, instance) {
+          if (selectedDates.length === 2) {
+            STARTDATE = selectedDates[0];
+            ENDDATE = selectedDates[1];
+            fetchVisits();
+          }
+        }
+      });
 
       // Auto load fetch visits
       const settings = loadSettings();
@@ -293,16 +352,12 @@
       </header>
   
       <div id="optionsContainer">
-        <p class="dates">
-          <label for="startDate">Start Date:</label>
-          <input type="date" id="startDate" name="startDate">
-        </p>
-        <p class="dates">
-          <label for="endDate">End Date:</label>
-          <input type="date" id="endDate" name="endDate">
-        </p>      
+        <div class="calendar-container">
+          <!-- <label class="calendar-label">Select Date Range:</label> -->
+          <div id="dateRangeCalendar"></div>
+        </div>
         
-        <h4>Output Options:</h4>
+        <!-- <h4>Output Options:</h4> -->
         <p>
           <label for="sortBySelect">Sort by:</label>
           <select id="sortBySelect">
@@ -352,7 +407,7 @@
             width: 100%;
             transition: background 0.2s;
           " onmouseover="this.style.background='#2a6619'" onmouseout="this.style.background='#388523'">
-            Fetch Data
+            Refresh Data
           </button>
         </p>
       </div>
@@ -364,6 +419,7 @@
       <div class="button-bar">
         <button id="previewMarkdownBtn" class="preview-button" title="Preview Markdown">Preview</button>
         <button id="copyMarkdownOutputBtn" class="copy-button" title="Copy Markdown">Copy Markdown</button>
+        <button id="copyRichTextBtn" class="copy-button" title="Copy Rich Text">Copy Rich Text</button>
         <button id="copyPlaintextBtn" class="copy-button" title="Copy Plain Text">Copy Plain Text</button>
       </div>
       <textarea id="markdown-output" class="output" placeholder="Your Markdown will go here."></textarea>
@@ -649,22 +705,21 @@
 
     // Fetch visits from the server and update the page.
     async function fetchVisits() {
-      const startDate = document.getElementById('startDate').value;
-      const endDate = document.getElementById('endDate').value;
-      if (!startDate || !endDate) {
+      if (!STARTDATE || !ENDDATE) {
         alert("Please select both start and end dates.");
         return;
       }
-    
-      // Add one day to end date to ensure we capture the full end date
-      const endDateObj = new Date(endDate);
+
+      // Format dates for API call
+      const startDateStr = STARTDATE.toISOString().split('T')[0];
+      const endDateObj = new Date(ENDDATE);
       endDateObj.setDate(endDateObj.getDate() + 1);
       const extendedEndDate = endDateObj.toISOString().split('T')[0];
     
       // Fetch the visits from the server.
       try {
         const response = await fetch(
-          `/api/visits?startDate=${encodeURIComponent(startDate + "T00:00:00")}&endDate=${encodeURIComponent(extendedEndDate + "T00:00:00")}`,
+          `/api/visits?startDate=${encodeURIComponent(startDateStr + "T00:00:00")}&endDate=${encodeURIComponent(extendedEndDate + "T00:00:00")}`,
           { headers: { 'Accept': 'application/json' } }
         );
     
@@ -688,8 +743,6 @@
       }
     }
     
-    const startDateInput = document.getElementById('startDate');
-    const endDateInput = document.getElementById('endDate');
     const annualSelect = document.getElementById('annualSelect');
     const sortBySelect = document.getElementById("sortBySelect");
     const showDatesSelect = document.getElementById("showDatesSelect");
@@ -703,19 +756,10 @@
       }
     });
 
-    startDateInput.addEventListener('change', () => {
-      STARTDATE = startDateInput.value;
-      fetchVisits();
-    });
-
-    endDateInput.addEventListener('change', () => {
-      ENDDATE = endDateInput.value;
-      fetchVisits();
-    });
-    annualSelect.addEventListener('change', () => {
-      formatAndDisplay();
-      saveSettings();
-    });
+    // annualSelect.addEventListener('change', () => {
+    //   formatAndDisplay();
+    //   saveSettings();
+    // });
 
     sortBySelect.addEventListener('change', () => {
       formatAndDisplay();
@@ -808,6 +852,39 @@
         });
       }
     
+      // Rich text copy button - copies rendered HTML with formatting
+      const copyRichTextBtn = document.getElementById('copyRichTextBtn');
+      if (copyRichTextBtn) {
+        copyRichTextBtn.addEventListener('click', function() {
+          if (!renderedMarkdown.innerHTML.trim()) {
+            alert('No rendered content available. Please ensure content is loaded and preview is active.');
+            return;
+          }
+          
+          // Create a range and select the rendered markdown content
+          const range = document.createRange();
+          range.selectNodeContents(renderedMarkdown);
+          
+          // Clear any existing selection and add our range
+          const selection = window.getSelection();
+          selection.removeAllRanges();
+          selection.addRange(range);
+          
+          try {
+            // Copy the selected content (this preserves HTML formatting)
+            document.execCommand('copy');
+            
+            // Clear the selection
+            selection.removeAllRanges();
+            
+            copyRichTextBtn.textContent = 'Copied!';
+            setTimeout(() => { copyRichTextBtn.textContent = 'Copy Rich Text'; }, 1200);
+          } catch (err) {
+            console.error('Failed to copy rich text:', err);
+            alert('Failed to copy rich text. Please try again.');
+          }
+        });
+      }
       // Markdown preview toggle logic
       const previewMarkdownBtn = document.getElementById('previewMarkdownBtn');
       let isMarkdownPreviewing = true;
