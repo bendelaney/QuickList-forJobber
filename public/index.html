@@ -592,6 +592,13 @@
         <div class="input-group">
           <h4>Visibility</h4>
           <p>
+            <label for="salespersonFilterSelect">Salesperson:</label>
+            <select id="salespersonFilterSelect">
+              <option value="all" selected>Include All</option>
+              <option value="showSelected">Include Selected...</option>
+            </select>
+          </p>
+          <p>
             <label for="annualSelect">Annual Jobs:</label>
             <select id="annualSelect">
               <option value="include" selected>Include Annual Jobs</option>
@@ -600,13 +607,6 @@
               <option value="annualOnly">Show Only Annual Jobs</option>
               <option value="annualOnlyConfirmed">Show Only *Confirmed* Annual Jobs</option>
               <option value="annualOnlyUnconfirmed">Show Only *Unconfirmed* Annual Jobs</option>
-            </select>
-          </p>
-          <p>
-            <label for="salespersonFilterSelect">Salesperson:</label>
-            <select id="salespersonFilterSelect">
-              <option value="all" selected>Include All</option>
-              <option value="showSelected">Include Selected...</option>
             </select>
           </p>
           <div id="salespersonCheckboxes" class="salesperson-checkboxes">
