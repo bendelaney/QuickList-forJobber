@@ -12,10 +12,11 @@
 			font-family: 'Inter', sans-serif;
 			background-color: fff;
 			color: #333;
-      margin: 0 auto;
-      min-height: 100vh;
+      margin: 0;
+      height: 100vh;
       display: flex;
       flex-direction: column;
+      overflow: hidden; /* Prevent body scroll */
 		}
     label {
       font-weight: bold;
@@ -29,17 +30,18 @@
 
     #wrapper {
       display: flex;
-      justify-content: space-between;
       flex: 1;
       min-height: 0;
+      overflow: hidden; /* Prevent wrapper scroll */
     }
 
     #sidebar {
       background: #f1f0e9;
       padding: 20px;
       border-right: 1px solid rgb(223, 221, 210);
-      /* max-width: 400px; */
       width: 308px;
+      overflow-y: auto; /* Allow sidebar to scroll if content is too tall */
+      flex-shrink: 0;
     }
 
     header h1 {
@@ -126,14 +128,12 @@
     }
 
     #outputContainer {
-      flex: 3;
+      flex: 1;
       display: flex;
-      min-height: 0; /* Important for flex children to respect parent height */
-      height: 100vh;
+      min-height: 0;
       box-sizing: border-box;
-      overflow: hidden;
       flex-direction: column;
-      position: relative;
+      overflow: hidden; /* Prevent container scroll */
     }
 
     .output {
@@ -161,9 +161,8 @@
       border: none;
       border-radius: 0;
       font-size: 0.85em;
-      background-color: #efefef;
-      overflow: auto;
       background-color: white;
+      overflow: auto;
       box-shadow: 0 2px 5px inset rgba(0,0,0,0.2);
       
       h1, h2, h3 {
@@ -192,8 +191,108 @@
     }
     
     @media (max-width: 768px) {
+      body {
+        overflow-x: hidden; /* Prevent horizontal scroll */
+      }
+
       #wrapper {
+        position: relative;
+        width: 200vw; /* Two panels side by side */
+        display: flex;
+        flex-direction: row; /* Side by side, not column */
+        transition: transform 0.3s ease-in-out;
+        min-height: 100vh;
+      }
+
+      #wrapper.show-output {
+        transform: translateX(-100vw); /* Slide left to show output */
+      }
+      
+      #sidebar {
+        width: 100vw;
+        height: 100vh;
+        max-width: none;
+        border-right: none;
+        border-bottom: none;
+        padding: 16px 10px;
+        box-sizing: border-box;
+        flex-shrink: 0;
+        position: relative;
+      }
+      
+      #outputContainer {
+        width: 100vw;
+        height: 100vh;
         flex-direction: column;
+        max-height: none;
+        padding: 0;
+        gap: 0;
+        flex-shrink: 0;
+        position: relative;
+      }
+      
+      textarea.output, #renderedMarkdown {
+        width: 100%;
+        min-height: 200px;
+        border-radius: 0;
+      }
+
+      /* Navigation buttons */
+      .mobile-nav-button {
+        position: fixed;
+        bottom: 20px;
+        background: #388523;
+        color: white;
+        border: 1px solid #2a6619;
+        border-radius: 8px;
+        padding: 12px 20px;
+        font-size: 14px;
+        font-weight: bold;
+        cursor: pointer;
+        z-index: 1000;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        transition: all 0.2s ease;
+      }
+
+      .mobile-nav-button:hover {
+        background: #2a6619;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+      }
+
+      .mobile-nav-button:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      }
+
+      #viewListBtn {
+        right: 20px;
+      }
+
+      #optionsBtn {
+        left: 20px;
+        display: none;
+      }
+
+      #wrapper.show-output #viewListBtn {
+        display: none;
+      }
+
+      #wrapper.show-output #optionsBtn {
+        display: block;
+      }
+
+      /* Hide refresh button on mobile */
+      #refreshDataBtn {
+        display: none;
+      }
+    }
+    
+    /* Desktop styles remain unchanged */
+    @media (min-width: 769px) {
+      #wrapper {
+        flex-direction: row;
+        height: 100vh; /* Ensure full height */
       }
       
       #optionsContainer {
@@ -202,38 +301,38 @@
         margin-bottom: 20px;
       }
       
-      #sidebar {
-        width: 100%;
-        max-width: none;
-        border-right: none;
-        border-bottom: 1px solid rgb(223, 221, 210);
-        padding: 16px 10px;
-        box-sizing: border-box;
-      }
-      
       #outputContainer {
+        display: flex;
         flex-direction: column;
-        height: auto;
-        max-height: 70vh;
+        min-height: 0;
         padding: 0;
         gap: 0;
+        box-sizing: border-box;
+        flex: 1;
+        overflow: hidden;
       }
       
-      textarea.output, #renderedMarkdown {
-        width: 100%;
-        min-height: 200px;
-        border-radius: 0;
+      /* Ensure both editing + preview panes flex properly and only they scroll */
+      #markdown-output,
+      #renderedMarkdown {
+        flex: 1;
+        min-height: 0;
+        overflow: auto;
+      }
+
+      .mobile-nav-button {
+        display: none !important;
       }
     }
-    
+
     /* Button styles */
     .button-bar {
       display: flex;
-      justify-content: flex-start;
-      gap: 10px;
+      justify-content: flex-start; /* changed from space-between */
       align-items: center;
       position: relative;
       padding: 10px;
+      gap: 10px; /* add gap so copy selector just sits beside preview */
     }
 
     .copy-button, .preview-button {
@@ -244,33 +343,58 @@
       font-size: 13px;
       cursor: pointer;
       transition: background 0.2s;
-      margin-right: 2px;
     }
+
     .preview-button.active {
       background: rgb(56, 133, 35);
       color: #fff;
       border: 1px solid #aaa;
       box-shadow: inset 0 0 5px rgb(30, 91, 14);
     }
-    #copyOutputBtn:active {
+
+    /* Ensure copy dropdown not stretched on desktop */
+    .copy-dropdown-container {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .copy-dropdown {
+      background: #f1f0e9;
+      border: 1px solid #bbb;
+      border-radius: 4px;
+      padding: 6px 14px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: background 0.2s;
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+    }
+
+    .copy-dropdown:hover {
       background: #e0dfd6;
     }
 
-    @media (max-width: 768px) {
-      .button-bar {
-        button {
-          margin-right: 0;
-        }
-      }
-      #copyOutputBtn {
-        font-size: 15px;
-        padding: 10px 18px;
-      }
+    .copied-indicator {
+      order: 2;
+      font-size: 13px;
+      font-weight: bold;
+      color: #388523;
+      pointer-events: none;
+      white-space: nowrap;
+      opacity: 0;
+      margin-left: 6px;
     }
+    .copy-dropdown { order: 1; }
 
     @media (max-width: 768px) {
-      .tab-bar {
-        font-size: 1.1em;
+      .copied-indicator { order: 1; margin-left: 0; margin-right: 6px; }
+      .copy-dropdown { order: 2; }
+      .button-bar {
+        justify-content: space-between; /* push ends apart on mobile */
+      }
+      .copy-dropdown-container {
+        margin-left: auto; /* ensures it hugs right even if spacing rules change */
       }
     }
 
@@ -318,7 +442,30 @@
     .flatpickr-day.endRange.startRange + .endRange:not(:nth-child(7n+1)) {
       box-shadow: -10px 0 0 rgb(138, 198, 121);
     }
-  </style>
+
+    /* Refresh button styles */
+    #refreshDataBtn {
+      background: #388523;
+      color: white;
+      border: 1px solid #2a6619;
+      border-radius: 4px;
+      padding: 10px 20px;
+      font-size: 13px;
+      font-weight: bold;
+      cursor: pointer;
+      width: 100%;
+      transition: background 0.2s;
+    }
+
+    #refreshDataBtn:hover {
+      background: #2a6619;
+    }
+
+    #refreshDataBtn:disabled {
+      background: #666;
+      cursor: not-allowed;
+    }
+    </style>
   <script>
     // Pre-authentication: On page load, check if the user is authenticated.
     window.addEventListener('DOMContentLoaded', async () => {
@@ -483,20 +630,7 @@
         </div>
 
         <p>
-          <button id="refreshDataBtn" style="
-            background: #388523; 
-            color: white; 
-            border: 1px solid #2a6619; 
-            border-radius: 4px; 
-            padding: 10px 20px; 
-            font-size: 13px; 
-            font-weight: bold; 
-            cursor: pointer; 
-            width: 100%;
-            transition: background 0.2s;
-          " onmouseover="this.style.background='#2a6619'" onmouseout="this.style.background='#388523'">
-            Refresh Data
-          </button>
+          <button id="refreshDataBtn">Refresh Data</button>
         </p>
       </div>
 
@@ -506,14 +640,23 @@
     <div id="outputContainer">
       <div class="button-bar">
         <button id="previewMarkdownBtn" class="preview-button" title="Preview Markdown">Preview</button>
-        <button id="copyMarkdownOutputBtn" class="copy-button" title="Copy Markdown">Copy Markdown</button>
-        <button id="copyRichTextBtn" class="copy-button" title="Copy Rich Text">Copy Rich Text</button>
-        <button id="copyPlaintextBtn" class="copy-button" title="Copy Plain Text">Copy Plain Text</button>
+        <div class="copy-dropdown-container">
+          <select id="copyAsSelect" class="copy-dropdown">
+            <option value="">Copy List as...</option>
+            <option value="markdown">Markdown</option>
+            <option value="richtext">Rich Text</option>
+            <option value="plaintext">Plain Text</option>
+          </select>
+        </div>
       </div>
       <textarea id="markdown-output" class="output" placeholder="Your Markdown will go here."></textarea>
       <div id="renderedMarkdown" style="display:none;"></div>
     </div>
   </div>
+
+  <!-- Mobile navigation buttons -->
+  <button id="viewListBtn" class="mobile-nav-button">View List 👉🏼</button>
+  <button id="optionsBtn" class="mobile-nav-button">👈🏼 Options</button>
 
   <script>
     let DATA = null;
@@ -1099,93 +1242,111 @@
     });
     // Copy button logic
     document.addEventListener('DOMContentLoaded', function() {
-      // Markdown copy button
-      const copyMarkdownBtn = document.getElementById('copyMarkdownOutputBtn');
+      // Copy dropdown logic
+      const copyAsSelect = document.getElementById('copyAsSelect');
       const markdownOutput = document.getElementById('markdown-output');
       const renderedMarkdown = document.getElementById('renderedMarkdown');
-      
-      if (copyMarkdownBtn && markdownOutput && renderedMarkdown) {
-        copyMarkdownBtn.addEventListener('click', function() {
-          // If textarea is hidden, temporarily show it off-screen for copy
-          let restoreDisplay = null;
-          if (markdownOutput.style.display === 'none') {
-            restoreDisplay = markdownOutput.style.display;
-            markdownOutput.style.position = 'absolute';
-            markdownOutput.style.left = '-9999px';
-            markdownOutput.style.display = 'block';
-          }
-          markdownOutput.select();
-          markdownOutput.setSelectionRange(0, 99999);
-          document.execCommand('copy');
-          if (restoreDisplay !== null) {
-            markdownOutput.style.display = restoreDisplay;
-            markdownOutput.style.position = '';
-            markdownOutput.style.left = '';
-          }
-          copyMarkdownBtn.textContent = 'Copied!';
-          setTimeout(() => { copyMarkdownBtn.textContent = 'Copy Markdown'; }, 1200);
+      const copyContainer = document.querySelector('.copy-dropdown-container');
+      let activeIndicator = null;
+      let fadeTimer = null;
+      let removeTimer = null;
+
+      function showCopied(text) {
+        // Clean previous
+        if (fadeTimer) clearTimeout(fadeTimer);
+        if (removeTimer) clearTimeout(removeTimer);
+        if (activeIndicator && activeIndicator.parentNode) {
+          activeIndicator.parentNode.removeChild(activeIndicator);
+        }
+
+        // Create fresh element every time (avoids Safari stale state)
+        const span = document.createElement('span');
+        span.className = 'copied-indicator';
+        span.textContent = text;
+        // Append (order handled by flex + CSS)
+        copyContainer.appendChild(span);
+
+        // Force layout, then fade in
+        span.style.transition = 'none';
+        span.style.opacity = '0';
+        // Next frame -> fade in
+        requestAnimationFrame(() => {
+          span.style.transition = 'opacity 180ms ease';
+          span.style.opacity = '1';
         });
+
+        // Schedule fade out
+        fadeTimer = setTimeout(() => {
+          span.style.transition = 'opacity 220ms ease';
+          span.style.opacity = '0';
+          // Remove after fade
+          removeTimer = setTimeout(() => {
+            if (span.parentNode) span.parentNode.removeChild(span);
+            if (activeIndicator === span) activeIndicator = null;
+          }, 260);
+        }, 2000);
+
+        activeIndicator = span;
       }
-    
-      // Plain text copy button - generates on demand
-      const copyPlaintextBtn = document.getElementById('copyPlaintextBtn');
-      if (copyPlaintextBtn) {
-        copyPlaintextBtn.addEventListener('click', function() {
-          if (!DATA) {
-            alert('No data available. Please fetch data first.');
-            return;
-          }
-          
-          // Generate plain text on demand
-          const plainText = formatJobList(DATA, 'plaintext');
-          
-          // Create temporary textarea to copy from
-          const tempTextarea = document.createElement('textarea');
-          tempTextarea.value = plainText;
-          document.body.appendChild(tempTextarea);
-          tempTextarea.select();
-          tempTextarea.setSelectionRange(0, 99999);
-          document.execCommand('copy');
-          document.body.removeChild(tempTextarea);
-          
-          copyPlaintextBtn.textContent = 'Copied!';
-          setTimeout(() => { copyPlaintextBtn.textContent = 'Copy Plain Text'; }, 1200);
-        });
-      }
-    
-      // Rich text copy button - copies rendered HTML with formatting
-      const copyRichTextBtn = document.getElementById('copyRichTextBtn');
-      if (copyRichTextBtn) {
-        copyRichTextBtn.addEventListener('click', function() {
-          if (!renderedMarkdown.innerHTML.trim()) {
-            alert('No rendered content available. Please ensure content is loaded and preview is active.');
-            return;
-          }
-          
-          // Create a range and select the rendered markdown content
-          const range = document.createRange();
-          range.selectNodeContents(renderedMarkdown);
-          
-          // Clear any existing selection and add our range
-          const selection = window.getSelection();
-          selection.removeAllRanges();
-          selection.addRange(range);
-          
+
+      if (copyAsSelect) {
+        copyAsSelect.addEventListener('change', function() {
+          const selectedValue = this.value;
+          if (!selectedValue) return;
+          this.value = '';
           try {
-            // Copy the selected content (this preserves HTML formatting)
-            document.execCommand('copy');
-            
-            // Clear the selection
-            selection.removeAllRanges();
-            
-            copyRichTextBtn.textContent = 'Copied!';
-            setTimeout(() => { copyRichTextBtn.textContent = 'Copy Rich Text'; }, 1200);
-          } catch (err) {
-            console.error('Failed to copy rich text:', err);
-            alert('Failed to copy rich text. Please try again.');
+            if (selectedValue === 'markdown') {
+              let restore = null;
+              if (markdownOutput.style.display === 'none') {
+                restore = markdownOutput.style.display;
+                markdownOutput.style.position = 'absolute';
+                markdownOutput.style.left = '-9999px';
+                markdownOutput.style.display = 'block';
+              }
+              markdownOutput.select();
+              markdownOutput.setSelectionRange(0, markdownOutput.value.length);
+              document.execCommand('copy');
+              if (restore !== null) {
+                markdownOutput.style.display = restore;
+                markdownOutput.style.position = '';
+                markdownOutput.style.left = '';
+              }
+              showCopied('Copied Markdown');
+            } else if (selectedValue === 'richtext') {
+              if (!renderedMarkdown.innerHTML.trim()) {
+                alert('Activate preview first.');
+                return;
+              }
+              const range = document.createRange();
+              range.selectNodeContents(renderedMarkdown);
+              const sel = window.getSelection();
+              sel.removeAllRanges();
+              sel.addRange(range);
+              document.execCommand('copy');
+              sel.removeAllRanges();
+              showCopied('Copied Rich Text');
+            } else if (selectedValue === 'plaintext') {
+              if (!DATA) {
+                alert('No data yet.');
+                return;
+              }
+              const plain = formatJobList(DATA, 'plaintext');
+              const ta = document.createElement('textarea');
+              ta.value = plain;
+              document.body.appendChild(ta);
+              ta.select();
+              ta.setSelectionRange(0, ta.value.length);
+              document.execCommand('copy');
+              document.body.removeChild(ta);
+              showCopied('Copied Plain Text');
+            }
+          } catch (e) {
+            console.error(e);
+            alert('Copy failed.');
           }
         });
       }
+
       // Markdown preview toggle logic
       const previewMarkdownBtn = document.getElementById('previewMarkdownBtn');
       let isMarkdownPreviewing = true;
@@ -1216,6 +1377,44 @@
       // Initialize preview state on load
       updateMarkdownPreview();
     });
+
+    // Mobile navigation functionality
+    let currentPanel = 0;
+    let navigationInitialized = false;
+
+    function initMobileNavigation() {
+      if (window.innerWidth <= 768 && !navigationInitialized) {
+        // Button navigation - attach listeners only once
+        document.getElementById('viewListBtn').addEventListener('click', () => navigateToPanel(1));
+        document.getElementById('optionsBtn').addEventListener('click', () => navigateToPanel(0));
+        navigationInitialized = true;
+      } else if (window.innerWidth > 768) {
+        navigationInitialized = false; // Reset for mobile when resizing
+      }
+    }
+
+    function navigateToPanel(panelIndex) {
+      currentPanel = panelIndex;
+      const wrapper = document.getElementById('wrapper');
+      const viewListBtn = document.getElementById('viewListBtn');
+      const optionsBtn = document.getElementById('optionsBtn');
+      
+      if (panelIndex === 0) {
+        // Show options panel
+        wrapper.classList.remove('show-output');
+        viewListBtn.style.display = 'block';
+        optionsBtn.style.display = 'none';
+      } else {
+        // Show output panel
+        wrapper.classList.add('show-output');
+        viewListBtn.style.display = 'none';
+        optionsBtn.style.display = 'block';
+      }
+    }
+
+    // Initialize navigation on load and resize
+    window.addEventListener('DOMContentLoaded', initMobileNavigation);
+    window.addEventListener('resize', initMobileNavigation);
   </script>
 </body>
 </html>
