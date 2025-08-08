@@ -24,7 +24,7 @@
     }
     input[type="checkbox"] {
       margin-right: 10px;
-      transform: scale(1.5);
+      transform: scale(1.3);
     }
 
     #wrapper {
@@ -51,6 +51,42 @@
 
     #optionsContainer {
       font-size: 0.85em;
+
+      .input-group {
+        margin-bottom: 12px;
+        padding: 10px;
+        background-color: #fcfcfc;
+        border-radius: 8px;
+
+        h4 {
+          margin-top: 0;
+          margin-bottom: 0.75em;
+          font-size: 0.76rem;
+          text-transform: uppercase;
+          color: #999;
+          letter-spacing: 0.05em;
+        }
+      }
+
+      .salesperson-checkboxes {
+        /* margin-left: 20px; */
+        margin-top: 10px;
+        display: none;
+        
+        p {
+          margin: 5px 0;
+          padding-left: 50%;
+          /* font-size: 0.9em; */
+
+          &:first-child {
+            padding-left: 44%;
+          }
+        }
+        
+        input[type="checkbox"] {
+          transform: scale(1.3);
+        }
+      }
 
       .calendar-container {
         margin-bottom: 20px;
@@ -83,7 +119,7 @@
         flex: 1.4;
       }
       p {
-        margin: 0 0 15px 0;
+        margin: 10px 0 2px 0;
         display: flex;
         align-items: center;
       }
@@ -392,41 +428,59 @@
         </div>
         
         <!-- <h4>Output Options:</h4> -->
-        <p>
-          <label for="sortBySelect">Sort by:</label>
-          <select id="sortBySelect">
-            <option value="date">Date</option>
-            <option value="geoCode">GeoCode</option>
-            <option value="value">$ Value</option>
-            <option value="geoCodeThenValue">GeoCode, then $ Value</option>
-            <option value="alphabetical">Alphabetical</option>
-            <option value="salesperson">Salesperson</option>
-          </select>
-        </p>
+        <div class="input-group">
+          <p>
+            <label for="sortBySelect">Sort by:</label>
+            <select id="sortBySelect">
+              <option value="date">Date</option>
+              <option value="alphabetical">Alphabetical</option>
+              <option value="value">$ Value</option>
+              <option value="geoCode">GeoCode</option>
+              <option value="geoCodeThenValue">GeoCode, then $ Value</option>
+              <option value="salesperson">Salesperson</option>
+            </select>
+          </p>
+        </div>
   
-        <p>
-          <label for="annualSelect">Annual Jobs:</label>
-          <select id="annualSelect">
-            <option value="include" selected>Include Annual Jobs</option>
-            <option value="exclude">Exclude Annual Jobs</option>
-            <option value="excludeUnconfirmed">Exclude Unconfirmed Annual Jobs</option>
-            <option value="annualOnly">Show Only Annual Jobs</option>
-            <option value="annualOnlyConfirmed">Show Only *Confirmed* Annual Jobs</option>
-            <option value="annualOnlyUnconfirmed">Show Only *Unconfirmed* Annual Jobs</option>
-          </select>
-        </p>
+        <div class="input-group">
+          <h4>Visibility</h4>
+          <p>
+            <label for="annualSelect">Annual Jobs:</label>
+            <select id="annualSelect">
+              <option value="include" selected>Include Annual Jobs</option>
+              <option value="exclude">Exclude Annual Jobs</option>
+              <option value="excludeUnconfirmed">Exclude Unconfirmed Annual Jobs</option>
+              <option value="annualOnly">Show Only Annual Jobs</option>
+              <option value="annualOnlyConfirmed">Show Only *Confirmed* Annual Jobs</option>
+              <option value="annualOnlyUnconfirmed">Show Only *Unconfirmed* Annual Jobs</option>
+            </select>
+          </p>
+          <p>
+            <label for="salespersonFilterSelect">Salesperson:</label>
+            <select id="salespersonFilterSelect">
+              <option value="all" selected>Include All</option>
+              <option value="showSelected">Include Selected...</option>
+            </select>
+          </p>
+          <div id="salespersonCheckboxes" class="salesperson-checkboxes">
+            <!-- Dynamic checkboxes will be populated here -->
+          </div>
+        </div>
   
-        <p>
-          <label for="showDatesSelect">Show Dates:</label>
-          <select id="showDatesSelect">
-            <option value="none" selected>Don't Show Dates</option>
-            <option value="all">Show All Job Dates</option>
-            <option value="weekdayOnly">Show Only Weekday Job Dates</option>
-          </select>
-        </p>
-        <p><input type="checkbox" id="showValueCheckbox"><label for="showValueCheckbox">Show $ Value</label></p>
-        <p><input type="checkbox" id="showSalespersonCheckbox"><label for="showSalespersonCheckbox">Show Salesperson</label></p>
-        <p><input type="checkbox" id="showRangeInfoCheckbox" checked><label for="showRangeInfoCheckbox">Include Range Info <span>(at top of list)</span></label></p>
+        <div class="input-group">
+          <h4>Display</h4>
+          <p>
+            <label for="showDatesSelect">Show Dates:</label>
+            <select id="showDatesSelect">
+              <option value="weekdayOnly">Show Only Weekdays</option>
+              <option value="all">Show All Dates</option>
+              <option value="none" selected>Don't Show Dates</option>
+            </select>
+          </p>
+          <p><input type="checkbox" id="showRangeInfoCheckbox" checked><label for="showRangeInfoCheckbox">Include Range Summary <span>(at top of list)</span></label></p>
+          <p><input type="checkbox" id="showValueCheckbox"><label for="showValueCheckbox">Show $ Value</label></p>
+          <p><input type="checkbox" id="showSalespersonCheckbox"><label for="showSalespersonCheckbox">Show Salesperson</label></p>
+        </div>
 
         <p>
           <button id="refreshDataBtn" style="
@@ -471,14 +525,21 @@
       annual: "include",
       showDates: "none",
       showValue: false,
-      showSalesperson: false,
+      showSalesperson: true,
       showRangeInfo: true,
       startDate: null,
-      endDate: null
+      endDate: null,
+      salespersonFilter: "all",
+      selectedSalespeople: []
     };
 
     // Function to save current settings to localStorage
     function saveSettings() {
+      const selectedSalespeople = [];
+      document.querySelectorAll('.salesperson-checkbox:checked').forEach(checkbox => {
+        selectedSalespeople.push(checkbox.value);
+      });
+
       const currentSettings = {
         sortBy: sortBySelect.value,
         annual: annualSelect.value,
@@ -487,7 +548,9 @@
         showSalesperson: showSalespersonCheckbox.checked,
         showRangeInfo: showRangeInfoCheckbox.checked,
         startDate: STARTDATE ? STARTDATE.toISOString() : null,
-        endDate: ENDDATE ? ENDDATE.toISOString() : null
+        endDate: ENDDATE ? ENDDATE.toISOString() : null,
+        salespersonFilter: document.getElementById('salespersonFilterSelect').value,
+        selectedSalespeople: selectedSalespeople
       };
       
       localStorage.setItem('jobberSettings', JSON.stringify(currentSettings));
@@ -515,6 +578,158 @@
       showValueCheckbox.checked = settings.showValue;
       showSalespersonCheckbox.checked = settings.showSalesperson;
       showRangeInfoCheckbox.checked = settings.showRangeInfo;
+      
+      if (settings.salespersonFilter) {
+        document.getElementById('salespersonFilterSelect').value = settings.salespersonFilter;
+      }
+    }
+
+    // Function to extract unique salespeople from data
+    function extractSalespeople(data) {
+      const salespeople = new Set();
+      if (data && data.data && data.data.visits && data.data.visits.edges) {
+        data.data.visits.edges.forEach(edge => {
+          const salespersonName = edge.node.job.salesperson ? edge.node.job.salesperson.name.first.trim() : 'Unknown';
+          salespeople.add(salespersonName);
+        });
+      }
+      return Array.from(salespeople).sort();
+    }
+
+    // Function to populate salesperson checkboxes
+    function populateSalespersonCheckboxes(data) {
+      const container = document.getElementById('salespersonCheckboxes');
+      const salespeople = extractSalespeople(data);
+      const settings = loadSettings();
+      
+      container.innerHTML = '';
+      
+      // Add "All" checkbox at the top
+      const allP = document.createElement('p');
+      const allCheckbox = document.createElement('input');
+      allCheckbox.type = 'checkbox';
+      allCheckbox.className = 'salesperson-all-checkbox';
+      allCheckbox.id = 'salesperson_all';
+      allCheckbox.checked = true; // Default to checked
+      
+      allCheckbox.addEventListener('change', () => {
+        const isChecked = allCheckbox.checked;
+        // Update all individual checkboxes
+        document.querySelectorAll('.salesperson-checkbox').forEach(checkbox => {
+          checkbox.checked = isChecked;
+        });
+        formatAndDisplay();
+        saveSettings();
+      });
+      
+      const allLabel = document.createElement('label');
+      allLabel.htmlFor = 'salesperson_all';
+      allLabel.textContent = 'Select All:';
+      allLabel.style.fontWeight = 'bold';
+      
+      allP.appendChild(allCheckbox);
+      allP.appendChild(allLabel);
+      container.appendChild(allP);
+      
+      // Add individual salesperson checkboxes
+      salespeople.forEach(salesperson => {
+        const p = document.createElement('p');
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.className = 'salesperson-checkbox';
+        checkbox.value = salesperson;
+        checkbox.id = `salesperson_${salesperson.replace(/[^a-zA-Z0-9]/g, '_')}`;
+        
+        // Restore saved selections, or default to checked if "All" is checked
+        if (settings.selectedSalespeople && settings.selectedSalespeople.includes(salesperson)) {
+          checkbox.checked = true;
+        } else if (!settings.selectedSalespeople || settings.selectedSalespeople.length === 0) {
+          checkbox.checked = true; // Default to all checked
+        }
+        
+        checkbox.addEventListener('change', () => {
+          // Update "All" checkbox state based on individual checkboxes
+          const allIndividualCheckboxes = document.querySelectorAll('.salesperson-checkbox');
+          const checkedCheckboxes = document.querySelectorAll('.salesperson-checkbox:checked');
+          const allCheckbox = document.getElementById('salesperson_all');
+          
+          if (checkedCheckboxes.length === allIndividualCheckboxes.length) {
+            allCheckbox.checked = true;
+            allCheckbox.indeterminate = false;
+          } else if (checkedCheckboxes.length === 0) {
+            allCheckbox.checked = false;
+            allCheckbox.indeterminate = false;
+          } else {
+            allCheckbox.checked = false;
+            allCheckbox.indeterminate = true;
+          }
+          
+          formatAndDisplay();
+          saveSettings();
+        });
+        
+        const label = document.createElement('label');
+        label.htmlFor = checkbox.id;
+        label.textContent = salesperson;
+        
+        p.appendChild(checkbox);
+        p.appendChild(label);
+        container.appendChild(p);
+      });
+      
+      // Set initial "All" checkbox state
+      const allIndividualCheckboxes = document.querySelectorAll('.salesperson-checkbox');
+      const checkedCheckboxes = document.querySelectorAll('.salesperson-checkbox:checked');
+      const allCheckboxFinal = document.getElementById('salesperson_all');
+      
+      if (checkedCheckboxes.length === allIndividualCheckboxes.length) {
+        allCheckboxFinal.checked = true;
+        allCheckboxFinal.indeterminate = false;
+      } else if (checkedCheckboxes.length === 0) {
+        allCheckboxFinal.checked = false;
+        allCheckboxFinal.indeterminate = false;
+      } else {
+        allCheckboxFinal.checked = false;
+        allCheckboxFinal.indeterminate = true;
+      }
+    }
+
+    // Function to show/hide salesperson checkboxes
+    function toggleSalespersonCheckboxes() {
+      const select = document.getElementById('salespersonFilterSelect');
+      const container = document.getElementById('salespersonCheckboxes');
+      
+      if (select.value === 'showSelected') {
+        container.style.display = 'block';
+      } else {
+        container.style.display = 'none';
+      }
+    }
+
+    // Function to check if a job should be included based on salesperson filter
+    function shouldIncludeBySalesperson(edge) {
+      const salespersonFilterSelect = document.getElementById('salespersonFilterSelect');
+      
+      if (salespersonFilterSelect.value === 'all') {
+        return true;
+      }
+      
+      if (salespersonFilterSelect.value === 'showSelected') {
+        const selectedSalespeople = [];
+        document.querySelectorAll('.salesperson-checkbox:checked').forEach(checkbox => {
+          selectedSalespeople.push(checkbox.value);
+        });
+        
+        // If no salespeople are selected, show no jobs
+        if (selectedSalespeople.length === 0) {
+          return false;
+        }
+        
+        const jobSalesperson = edge.node.job.salesperson ? edge.node.job.salesperson.name.first.trim() : 'Unknown';
+        return selectedSalespeople.includes(jobSalesperson);
+      }
+      
+      return true;
     }
 
     // Helper function to format a date string into a friendly format.
@@ -649,7 +864,12 @@
           if (!jobIdentifier.includes('=') || !jobIdentifier.startsWith('=')) {
             includingLine = false;
           }
-        } 
+        }
+
+        // Salesperson filter
+        if (includingLine && !shouldIncludeBySalesperson(edge)) {
+          includingLine = false;
+        }
 
         if (includingLine) {
           jobCount++;
@@ -808,6 +1028,8 @@
         }
         
         DATA = data;
+        populateSalespersonCheckboxes(data);
+        toggleSalespersonCheckboxes();
         formatAndDisplay();
       } catch (error) {
         console.error("Error fetching visits:", error);
@@ -839,6 +1061,13 @@
     });
 
     showDatesSelect.addEventListener('change', () => {
+      formatAndDisplay();
+      saveSettings();
+    });
+
+    // Add event listener for salesperson filter select
+    document.getElementById('salespersonFilterSelect').addEventListener('change', () => {
+      toggleSalespersonCheckboxes();
       formatAndDisplay();
       saveSettings();
     });
