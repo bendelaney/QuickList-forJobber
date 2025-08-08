@@ -335,7 +335,7 @@
       gap: 10px; /* add gap so copy selector just sits beside preview */
     }
 
-    .copy-button, .preview-button {
+    .button {
       background: #f1f0e9;
       border: 1px solid #bbb;
       border-radius: 4px;
@@ -345,20 +345,22 @@
       transition: background 0.2s;
     }
 
-    .preview-button.active {
+    .button.active {
       background: rgb(56, 133, 35);
       color: #fff;
       border: 1px solid #aaa;
       box-shadow: inset 0 0 5px rgb(30, 91, 14);
     }
 
-    /* Ensure copy dropdown not stretched on desktop */
+    /* Custom dropdown styles */
     .copy-dropdown-container {
       display: flex;
       align-items: center;
       gap: 8px;
+      position: relative;
     }
-    .copy-dropdown {
+
+    .copy-dropdown-trigger {
       background: #f1f0e9;
       border: 1px solid #bbb;
       border-radius: 4px;
@@ -366,13 +368,63 @@
       font-size: 13px;
       cursor: pointer;
       transition: background 0.2s;
-      appearance: none;
-      -webkit-appearance: none;
-      -moz-appearance: none;
+      position: relative;
+      min-width: 120px;
+      text-align: left;
     }
 
-    .copy-dropdown:hover {
+    .copy-dropdown-trigger:hover {
       background: #e0dfd6;
+    }
+
+    .copy-dropdown-trigger:after {
+      content: '▼';
+      position: absolute;
+      right: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 10px;
+      color: #666;
+    }
+
+    .copy-dropdown-menu {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: white;
+      border: 1px solid #bbb;
+      border-radius: 4px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      z-index: 1000;
+      display: none;
+      flex-direction: column;
+    }
+
+    .copy-dropdown-menu.show {
+      display: flex;
+    }
+
+    .copy-dropdown-item {
+      background: none;
+      border: none;
+      padding: 8px 12px;
+      text-align: left;
+      cursor: pointer;
+      font-size: 13px;
+      transition: background 0.1s;
+    }
+
+    .copy-dropdown-item:hover {
+      background: #f0f0f0;
+    }
+
+    .copy-dropdown-item:first-child {
+      border-radius: 4px 4px 0 0;
+    }
+
+    .copy-dropdown-item:last-child {
+      border-radius: 0 0 4px 4px;
     }
 
     .copied-indicator {
@@ -385,7 +437,6 @@
       opacity: 0;
       margin-left: 6px;
     }
-    .copy-dropdown { order: 1; }
 
     @media (max-width: 768px) {
       .copied-indicator { order: 1; margin-left: 0; margin-right: 6px; }
@@ -465,7 +516,7 @@
       background: #666;
       cursor: not-allowed;
     }
-    </style>
+  </style>
   <script>
     // Pre-authentication: On page load, check if the user is authenticated.
     window.addEventListener('DOMContentLoaded', async () => {
@@ -630,7 +681,7 @@
         </div>
 
         <p>
-          <button id="refreshDataBtn">Refresh Data</button>
+          <button id="refreshDataBtn" class="button active">Refresh Data</button>
         </p>
       </div>
 
@@ -639,14 +690,14 @@
 
     <div id="outputContainer">
       <div class="button-bar">
-        <button id="previewMarkdownBtn" class="preview-button" title="Preview Markdown">Preview</button>
+        <button id="previewMarkdownBtn" class="preview-button button" title="Preview Markdown">Preview</button>
         <div class="copy-dropdown-container">
-          <select id="copyAsSelect" class="copy-dropdown">
-            <option value="">Copy List as...</option>
-            <option value="markdown">Markdown</option>
-            <option value="richtext">Rich Text</option>
-            <option value="plaintext">Plain Text</option>
-          </select>
+          <button class="copy-dropdown-trigger" id="copyDropdownTrigger">Copy List as...</button>
+          <div class="copy-dropdown-menu" id="copyDropdownMenu">
+            <button class="copy-dropdown-item" data-copy-type="markdown">Markdown</button>
+            <button class="copy-dropdown-item" data-copy-type="richtext">Rich Text</button>
+            <button class="copy-dropdown-item" data-copy-type="plaintext">Plain Text</button>
+          </div>
         </div>
       </div>
       <textarea id="markdown-output" class="output" placeholder="Your Markdown will go here."></textarea>
@@ -1243,13 +1294,32 @@
     // Copy button logic
     document.addEventListener('DOMContentLoaded', function() {
       // Copy dropdown logic
-      const copyAsSelect = document.getElementById('copyAsSelect');
       const markdownOutput = document.getElementById('markdown-output');
       const renderedMarkdown = document.getElementById('renderedMarkdown');
       const copyContainer = document.querySelector('.copy-dropdown-container');
+      const copyTrigger = document.getElementById('copyDropdownTrigger');
+      const copyMenu = document.getElementById('copyDropdownMenu');
+      const copyItems = document.querySelectorAll('.copy-dropdown-item');
+      
       let activeIndicator = null;
       let fadeTimer = null;
       let removeTimer = null;
+
+      // Toggle dropdown menu
+      copyTrigger.addEventListener('click', function(e) {
+        e.stopPropagation();
+        copyMenu.classList.toggle('show');
+      });
+
+      // Close dropdown when clicking outside
+      document.addEventListener('click', function() {
+        copyMenu.classList.remove('show');
+      });
+
+      // Prevent menu from closing when clicking inside it
+      copyMenu.addEventListener('click', function(e) {
+        e.stopPropagation();
+      });
 
       function showCopied(text) {
         // Clean previous
@@ -1259,17 +1329,15 @@
           activeIndicator.parentNode.removeChild(activeIndicator);
         }
 
-        // Create fresh element every time (avoids Safari stale state)
+        // Create fresh element every time
         const span = document.createElement('span');
         span.className = 'copied-indicator';
         span.textContent = text;
-        // Append (order handled by flex + CSS)
         copyContainer.appendChild(span);
 
         // Force layout, then fade in
         span.style.transition = 'none';
         span.style.opacity = '0';
-        // Next frame -> fade in
         requestAnimationFrame(() => {
           span.style.transition = 'opacity 180ms ease';
           span.style.opacity = '1';
@@ -1279,7 +1347,6 @@
         fadeTimer = setTimeout(() => {
           span.style.transition = 'opacity 220ms ease';
           span.style.opacity = '0';
-          // Remove after fade
           removeTimer = setTimeout(() => {
             if (span.parentNode) span.parentNode.removeChild(span);
             if (activeIndicator === span) activeIndicator = null;
@@ -1289,68 +1356,87 @@
         activeIndicator = span;
       }
 
-      if (copyAsSelect) {
-        copyAsSelect.addEventListener('change', function() {
-          const selectedValue = this.value;
-          if (!selectedValue) return;
-          this.value = '';
+      function copyToClipboard(text) {
+        try {
+          const textArea = document.createElement('textarea');
+          textArea.value = text;
+          textArea.style.position = 'fixed';
+          textArea.style.left = '-999999px';
+          textArea.style.top = '-999999px';
+          document.body.appendChild(textArea);
+          textArea.focus();
+          textArea.select();
+          const result = document.execCommand('copy');
+          document.body.removeChild(textArea);
+          return result;
+        } catch (err) {
+          console.error('Copy failed:', err);
+          return false;
+        }
+      }
+
+      // Handle copy item clicks
+      copyItems.forEach(item => {
+        item.addEventListener('click', function() {
+          const copyType = this.getAttribute('data-copy-type');
+          copyMenu.classList.remove('show');
+          
+          let success = false;
+          
           try {
-            if (selectedValue === 'markdown') {
-              let restore = null;
-              if (markdownOutput.style.display === 'none') {
-                restore = markdownOutput.style.display;
-                markdownOutput.style.position = 'absolute';
-                markdownOutput.style.left = '-9999px';
-                markdownOutput.style.display = 'block';
-              }
-              markdownOutput.select();
-              markdownOutput.setSelectionRange(0, markdownOutput.value.length);
-              document.execCommand('copy');
-              if (restore !== null) {
-                markdownOutput.style.display = restore;
-                markdownOutput.style.position = '';
-                markdownOutput.style.left = '';
-              }
-              showCopied('Copied Markdown');
-            } else if (selectedValue === 'richtext') {
+            if (copyType === 'markdown') {
+              success = copyToClipboard(markdownOutput.value);
+              if (success) showCopied('Copied Markdown');
+            } else if (copyType === 'richtext') {
               if (!renderedMarkdown.innerHTML.trim()) {
                 alert('Activate preview first.');
                 return;
               }
-              const range = document.createRange();
-              range.selectNodeContents(renderedMarkdown);
-              const sel = window.getSelection();
-              sel.removeAllRanges();
-              sel.addRange(range);
-              document.execCommand('copy');
-              sel.removeAllRanges();
-              showCopied('Copied Rich Text');
-            } else if (selectedValue === 'plaintext') {
+              
+              // Try selection-based copy for rich text
+              try {
+                const range = document.createRange();
+                range.selectNodeContents(renderedMarkdown);
+                const sel = window.getSelection();
+                sel.removeAllRanges();
+                sel.addRange(range);
+                success = document.execCommand('copy');
+                sel.removeAllRanges();
+                
+                if (!success) {
+                  // Fallback to plain text
+                  success = copyToClipboard(renderedMarkdown.innerText);
+                }
+              } catch (selectionErr) {
+                success = copyToClipboard(renderedMarkdown.innerText);
+              }
+              
+              if (success) showCopied('Copied Rich Text');
+            } else if (copyType === 'plaintext') {
               if (!DATA) {
                 alert('No data yet.');
                 return;
               }
               const plain = formatJobList(DATA, 'plaintext');
-              const ta = document.createElement('textarea');
-              ta.value = plain;
-              document.body.appendChild(ta);
-              ta.select();
-              ta.setSelectionRange(0, ta.value.length);
-              document.execCommand('copy');
-              document.body.removeChild(ta);
-              showCopied('Copied Plain Text');
+              success = copyToClipboard(plain);
+              if (success) showCopied('Copied Plain Text');
             }
+            
+            if (!success) {
+              alert('Copy failed. Try selecting the text manually and using Ctrl+C (or Cmd+C on Mac).');
+            }
+            
           } catch (e) {
-            console.error(e);
-            alert('Copy failed.');
+            console.error('Copy operation failed:', e);
+            alert('Copy failed. Try selecting the text manually and using Ctrl+C (or Cmd+C on Mac).');
           }
         });
-      }
+      });
 
       // Markdown preview toggle logic
       const previewMarkdownBtn = document.getElementById('previewMarkdownBtn');
       let isMarkdownPreviewing = true;
-    
+  
       function updateMarkdownPreview() {
         if (isMarkdownPreviewing) {
           // Show rendered markdown, hide textarea
@@ -1376,45 +1462,45 @@
     
       // Initialize preview state on load
       updateMarkdownPreview();
+
+      // Mobile navigation functionality
+      let currentPanel = 0;
+      let navigationInitialized = false;
+
+      function initMobileNavigation() {
+        if (window.innerWidth <= 768 && !navigationInitialized) {
+          // Button navigation - attach listeners only once
+          document.getElementById('viewListBtn').addEventListener('click', () => navigateToPanel(1));
+          document.getElementById('optionsBtn').addEventListener('click', () => navigateToPanel(0));
+          navigationInitialized = true;
+        } else if (window.innerWidth > 768) {
+          navigationInitialized = false; // Reset for mobile when resizing
+        }
+      }
+
+      function navigateToPanel(panelIndex) {
+        currentPanel = panelIndex;
+        const wrapper = document.getElementById('wrapper');
+        const viewListBtn = document.getElementById('viewListBtn');
+        const optionsBtn = document.getElementById('optionsBtn');
+        
+        if (panelIndex === 0) {
+          // Show options panel
+          wrapper.classList.remove('show-output');
+          viewListBtn.style.display = 'block';
+          optionsBtn.style.display = 'none';
+        } else {
+          // Show output panel
+          wrapper.classList.add('show-output');
+          viewListBtn.style.display = 'none';
+          optionsBtn.style.display = 'block';
+        }
+      }
+
+      // Initialize navigation on load and resize
+      window.addEventListener('DOMContentLoaded', initMobileNavigation);
+      window.addEventListener('resize', initMobileNavigation);
     });
-
-    // Mobile navigation functionality
-    let currentPanel = 0;
-    let navigationInitialized = false;
-
-    function initMobileNavigation() {
-      if (window.innerWidth <= 768 && !navigationInitialized) {
-        // Button navigation - attach listeners only once
-        document.getElementById('viewListBtn').addEventListener('click', () => navigateToPanel(1));
-        document.getElementById('optionsBtn').addEventListener('click', () => navigateToPanel(0));
-        navigationInitialized = true;
-      } else if (window.innerWidth > 768) {
-        navigationInitialized = false; // Reset for mobile when resizing
-      }
-    }
-
-    function navigateToPanel(panelIndex) {
-      currentPanel = panelIndex;
-      const wrapper = document.getElementById('wrapper');
-      const viewListBtn = document.getElementById('viewListBtn');
-      const optionsBtn = document.getElementById('optionsBtn');
-      
-      if (panelIndex === 0) {
-        // Show options panel
-        wrapper.classList.remove('show-output');
-        viewListBtn.style.display = 'block';
-        optionsBtn.style.display = 'none';
-      } else {
-        // Show output panel
-        wrapper.classList.add('show-output');
-        viewListBtn.style.display = 'none';
-        optionsBtn.style.display = 'block';
-      }
-    }
-
-    // Initialize navigation on load and resize
-    window.addEventListener('DOMContentLoaded', initMobileNavigation);
-    window.addEventListener('resize', initMobileNavigation);
   </script>
 </body>
 </html>
