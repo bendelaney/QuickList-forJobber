@@ -298,14 +298,16 @@
         return;
       }
 
-      // Compute the next Sunday (if today is Sunday, use 7 days from now).
+      // Compute the next Sunday (if today is Sunday, use next Sunday, not today).
       function getNextSunday() {
         const now = new Date();
         const day = now.getDay(); // Sunday = 0, Monday = 1, ..., Saturday = 6
         let daysUntilSunday = (7 - day) % 7;
-        if (daysUntilSunday === 0) daysUntilSunday = 0;
+        if (daysUntilSunday === 0) daysUntilSunday = 7; // If today is Sunday, get next Sunday
         const nextSunday = new Date(now);
         nextSunday.setDate(now.getDate() + daysUntilSunday);
+        // Set time to beginning of day
+        nextSunday.setHours(0, 0, 0, 0);
         return nextSunday;
       }
 
@@ -313,13 +315,19 @@
       function getFollowingFriday(fromSunday) {
         const friday = new Date(fromSunday);
         friday.setDate(fromSunday.getDate() + 5); // Friday is 5 days after Sunday
+        // Set time to end of day
+        friday.setHours(23, 59, 59, 999);
         return friday;
       }
 
       const nextSunday = getNextSunday();
-      STARTDATE = nextSunday;
       const followingFriday = getFollowingFriday(nextSunday);
+      
+      // Set global variables before initializing calendar
+      STARTDATE = nextSunday;
       ENDDATE = followingFriday;
+
+      console.log('Initial dates:', { STARTDATE, ENDDATE });
 
       // Initialize single Flatpickr calendar with range selection
       const dateRangePicker = flatpickr("#dateRangeCalendar", {
@@ -327,9 +335,16 @@
         mode: "range",
         defaultDate: [nextSunday, followingFriday],
         onChange: function(selectedDates, dateStr, instance) {
+          console.log('Calendar onChange triggered:', selectedDates);
           if (selectedDates.length === 2) {
-            STARTDATE = selectedDates[0];
-            ENDDATE = selectedDates[1];
+            // Ensure start date is at beginning of day and end date is at end of day
+            STARTDATE = new Date(selectedDates[0]);
+            STARTDATE.setHours(0, 0, 0, 0);
+            
+            ENDDATE = new Date(selectedDates[1]);
+            ENDDATE.setHours(23, 59, 59, 999);
+            
+            console.log('Updated dates from calendar:', { STARTDATE, ENDDATE });
             fetchVisits();
           }
         }
@@ -338,7 +353,12 @@
       // Auto load fetch visits
       const settings = loadSettings();
       applySettings(settings);
-      fetchVisits();
+      
+      // Add a small delay to ensure calendar is fully initialized
+      setTimeout(() => {
+        console.log('About to fetch with dates:', { STARTDATE, ENDDATE });
+        fetchVisits();
+      }, 100);
     });
   </script>
 
@@ -715,11 +735,14 @@
       const endDateObj = new Date(ENDDATE);
       endDateObj.setDate(endDateObj.getDate() + 1);
       const extendedEndDate = endDateObj.toISOString().split('T')[0];
+
+      const startParam = startDateStr + "T00:00:00";
+      const endParam = extendedEndDate + "T00:00:00";
     
       // Fetch the visits from the server.
       try {
         const response = await fetch(
-          `/api/visits?startDate=${encodeURIComponent(startDateStr + "T00:00:00")}&endDate=${encodeURIComponent(extendedEndDate + "T00:00:00")}`,
+          `/api/visits?startDate=${encodeURIComponent(startParam)}&endDate=${encodeURIComponent(endParam)}`,
           { headers: { 'Accept': 'application/json' } }
         );
     
@@ -742,7 +765,7 @@
         alert("Error fetching visits. Please try again.");
       }
     }
-    
+
     const annualSelect = document.getElementById('annualSelect');
     const sortBySelect = document.getElementById("sortBySelect");
     const showDatesSelect = document.getElementById("showDatesSelect");
