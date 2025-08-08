@@ -320,12 +320,26 @@
         return friday;
       }
 
-      const nextSunday = getNextSunday();
-      const followingFriday = getFollowingFriday(nextSunday);
+      // Load settings first to check for saved dates
+      const settings = loadSettings();
+      
+      let defaultStartDate, defaultEndDate;
+      
+      if (settings.startDate && settings.endDate) {
+        // Use saved dates if they exist
+        defaultStartDate = new Date(settings.startDate);
+        defaultEndDate = new Date(settings.endDate);
+        console.log('Using saved dates from localStorage:', { defaultStartDate, defaultEndDate });
+      } else {
+        // Use default Sunday-Friday range
+        defaultStartDate = getNextSunday();
+        defaultEndDate = getFollowingFriday(defaultStartDate);
+        console.log('Using default Sunday-Friday dates:', { defaultStartDate, defaultEndDate });
+      }
       
       // Set global variables before initializing calendar
-      STARTDATE = nextSunday;
-      ENDDATE = followingFriday;
+      STARTDATE = defaultStartDate;
+      ENDDATE = defaultEndDate;
 
       console.log('Initial dates:', { STARTDATE, ENDDATE });
 
@@ -333,7 +347,7 @@
       const dateRangePicker = flatpickr("#dateRangeCalendar", {
         inline: true,
         mode: "range",
-        defaultDate: [nextSunday, followingFriday],
+        defaultDate: [defaultStartDate, defaultEndDate],
         onChange: function(selectedDates, dateStr, instance) {
           console.log('Calendar onChange triggered:', selectedDates);
           if (selectedDates.length === 2) {
@@ -345,13 +359,13 @@
             ENDDATE.setHours(23, 59, 59, 999);
             
             console.log('Updated dates from calendar:', { STARTDATE, ENDDATE });
+            saveSettings(); // Save dates when they change
             fetchVisits();
           }
         }
       });
 
-      // Auto load fetch visits
-      const settings = loadSettings();
+      // Apply other settings
       applySettings(settings);
       
       // Add a small delay to ensure calendar is fully initialized
@@ -458,7 +472,9 @@
       showDates: "none",
       showValue: false,
       showSalesperson: false,
-      showRangeInfo: true
+      showRangeInfo: true,
+      startDate: null,
+      endDate: null
     };
 
     // Function to save current settings to localStorage
@@ -469,7 +485,9 @@
         showDates: showDatesSelect.value,
         showValue: showValueCheckbox.checked,
         showSalesperson: showSalespersonCheckbox.checked,
-        showRangeInfo: showRangeInfoCheckbox.checked
+        showRangeInfo: showRangeInfoCheckbox.checked,
+        startDate: STARTDATE ? STARTDATE.toISOString() : null,
+        endDate: ENDDATE ? ENDDATE.toISOString() : null
       };
       
       localStorage.setItem('jobberSettings', JSON.stringify(currentSettings));
