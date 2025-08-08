@@ -730,14 +730,34 @@
         return;
       }
 
-      // Format dates for API call
-      const startDateStr = STARTDATE.toISOString().split('T')[0];
-      const endDateObj = new Date(ENDDATE);
-      endDateObj.setDate(endDateObj.getDate() + 1);
-      const extendedEndDate = endDateObj.toISOString().split('T')[0];
+      // Format dates for API call using UTC to match database format
+      function formatUTCDate(date) {
+        const year = date.getUTCFullYear();
+        const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+        const day = String(date.getUTCDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+      }
 
-      const startParam = startDateStr + "T00:00:00";
-      const endParam = extendedEndDate + "T00:00:00";
+      // Create a new date object for the end date + 1 day using local time
+      const endDatePlusOne = new Date(ENDDATE);
+      endDatePlusOne.setDate(endDatePlusOne.getDate() + 1);
+      endDatePlusOne.setHours(0, 0, 0, 0); // Set to beginning of day
+
+      const startDateStr = formatUTCDate(STARTDATE);
+      const extendedEndDate = formatUTCDate(endDatePlusOne);
+
+      const startParam = startDateStr + "T00:00:00Z";
+      const endParam = extendedEndDate + "T00:00:00Z";
+
+      console.log('=== FETCH VISITS DEBUG (UTC FIXED) ===');
+      console.log('Original STARTDATE:', STARTDATE);
+      console.log('Original ENDDATE:', ENDDATE);
+      console.log('End date + 1 day (local):', endDatePlusOne);
+      console.log('Formatted startDateStr (UTC):', startDateStr);
+      console.log('Extended endDate (UTC):', extendedEndDate);
+      console.log('Start parameter:', startParam);
+      console.log('End parameter:', endParam);
+      console.log('Full API URL:', `/api/visits?startDate=${encodeURIComponent(startParam)}&endDate=${encodeURIComponent(endParam)}`);
     
       // Fetch the visits from the server.
       try {
@@ -757,7 +777,18 @@
         }
     
         const data = await response.json();
-        console.log(data);
+        console.log('API Response data:', data);
+        console.log('Number of visits returned:', data?.data?.visits?.edges?.length || 0);
+        
+        // Log first few visits for debugging
+        if (data?.data?.visits?.edges?.length > 0) {
+          console.log('First 3 visits:', data.data.visits.edges.slice(0, 3).map(edge => ({
+            title: edge.node.title,
+            startAt: edge.node.startAt,
+            date: new Date(edge.node.startAt).toLocaleDateString()
+          })));
+        }
+        
         DATA = data;
         formatAndDisplay();
       } catch (error) {
