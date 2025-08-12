@@ -223,6 +223,13 @@
         box-sizing: border-box;
         flex-shrink: 0;
         position: relative;
+        
+        /* CRITICAL MOBILE SCROLLING FIXES */
+        overflow-y: auto;
+        overflow-x: hidden;
+        -webkit-overflow-scrolling: touch; /* iOS momentum scrolling */
+        touch-action: pan-y; /* Allow vertical touch scrolling only */
+        overscroll-behavior-y: contain; /* Prevent bounce affecting parent */
       }
       
       #outputContainer {
@@ -234,26 +241,40 @@
         gap: 0;
         flex-shrink: 0;
         position: relative;
-				overflow: scroll;
+        
+        /* Allow scrollable children but don't scroll container itself */
+        overflow: visible;
       }
       
+      /* CRITICAL FIX: Make both textarea and rendered markdown scrollable */
       textarea.output, #renderedMarkdown {
-        width: 100%;
-        min-height: 200px;
-        border-radius: 0;
+        width: 100% !important;
+        min-height: 200px !important;
+        border-radius: 0 !important;
+        
+        /* Calculate proper height accounting for button bar */
+        height: calc(100vh - 70px) !important; /* 70px for button bar */
+        max-height: calc(100vh - 70px) !important;
+        
+        /* CRITICAL MOBILE SCROLLING FIXES */
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        -webkit-overflow-scrolling: touch !important; /* iOS momentum scrolling */
+        touch-action: pan-y !important; /* Allow vertical touch scrolling only */
+        overscroll-behavior-y: contain !important; /* Prevent bounce affecting parent */
+        -webkit-transform: translate3d(0, 0, 0) !important; /* Hardware acceleration */
+        
+        /* Ensure they can actually scroll */
+        flex: none !important; /* Don't use flex sizing on mobile */
+      }
 
-				/* Ensure these have proper height to be scrollable */
-    height: calc(100vh - 60px); /* Account for button bar height */
-    flex: 1;
-    
-    /* Critical mobile scrolling fixes */
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
-    -webkit-overflow-scrolling: touch !important;
-    touch-action: pan-y !important;
-    overscroll-behavior-y: contain !important;
-    -webkit-transform: translate3d(0, 0, 0);
-
+      /* Additional mobile optimizations for content areas */
+      #optionsContainer {
+        /* Ensure options container can scroll properly */
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        touch-action: pan-y;
+        max-height: calc(100vh - 140px); /* Account for header and button */
       }
 
       /* Navigation buttons */
@@ -271,6 +292,9 @@
         z-index: 1000;
         box-shadow: 0 2px 10px rgba(0,0,0,0.3);
         transition: all 0.2s ease;
+        
+        /* Ensure buttons don't interfere with scrolling */
+        touch-action: manipulation;
       }
 
       .mobile-nav-button:hover {
@@ -353,6 +377,10 @@
       padding: 10px 10px 10px 0;
       gap: 10px; /* add gap so copy selector just sits beside preview */
       background: #f1f0e9;
+      
+      /* On mobile, ensure button bar doesn't interfere with scrolling */
+      flex-shrink: 0;
+      height: 60px; /* Fixed height for calculations */
     }
 
     .button {
@@ -536,39 +564,6 @@
       background: #666;
       cursor: not-allowed;
     }
-		@media (max-width: 768px) {
-  /* Your existing mobile styles... */
-  
-  #sidebar {
-    /* Add these critical mobile scrolling fixes */
-    -webkit-overflow-scrolling: touch; /* iOS momentum scrolling */
-    touch-action: pan-y; /* Allow vertical touch scrolling only */
-    overscroll-behavior-y: contain; /* Prevent bounce affecting parent */
-  }
-  
-  /* FIX THE TEXTAREA AND RENDERED MARKDOWN SCROLLING */
-  textarea.output, #renderedMarkdown {
-    /* Add these critical mobile scrolling fixes */
-    -webkit-overflow-scrolling: touch !important; /* iOS momentum scrolling */
-    touch-action: pan-y !important; /* Allow vertical touch scrolling only */
-    overscroll-behavior-y: contain !important; /* Prevent bounce affecting parent */
-    -webkit-transform: translate3d(0, 0, 0); /* Hardware acceleration */
-  }
-
-  /* Additional mobile optimizations for content areas */
-  #optionsContainer {
-    /* Ensure options container can scroll properly */
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    touch-action: pan-y;
-    max-height: calc(100vh - 140px); /* Account for header and button */
-  }
-
-  .mobile-nav-button {
-    /* Ensure buttons don't interfere with scrolling */
-    touch-action: manipulation;
-  }
-}
   </style>
   <script>
     // Pre-authentication: On page load, check if the user is authenticated.
