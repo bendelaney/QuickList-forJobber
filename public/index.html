@@ -234,12 +234,26 @@
         gap: 0;
         flex-shrink: 0;
         position: relative;
+				overflow: scroll;
       }
       
       textarea.output, #renderedMarkdown {
         width: 100%;
         min-height: 200px;
         border-radius: 0;
+
+				/* Ensure these have proper height to be scrollable */
+    height: calc(100vh - 60px); /* Account for button bar height */
+    flex: 1;
+    
+    /* Critical mobile scrolling fixes */
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    -webkit-overflow-scrolling: touch !important;
+    touch-action: pan-y !important;
+    overscroll-behavior-y: contain !important;
+    -webkit-transform: translate3d(0, 0, 0);
+
       }
 
       /* Navigation buttons */
