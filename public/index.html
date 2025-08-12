@@ -522,6 +522,39 @@
       background: #666;
       cursor: not-allowed;
     }
+		@media (max-width: 768px) {
+  /* Your existing mobile styles... */
+  
+  #sidebar {
+    /* Add these critical mobile scrolling fixes */
+    -webkit-overflow-scrolling: touch; /* iOS momentum scrolling */
+    touch-action: pan-y; /* Allow vertical touch scrolling only */
+    overscroll-behavior-y: contain; /* Prevent bounce affecting parent */
+  }
+  
+  /* FIX THE TEXTAREA AND RENDERED MARKDOWN SCROLLING */
+  textarea.output, #renderedMarkdown {
+    /* Add these critical mobile scrolling fixes */
+    -webkit-overflow-scrolling: touch !important; /* iOS momentum scrolling */
+    touch-action: pan-y !important; /* Allow vertical touch scrolling only */
+    overscroll-behavior-y: contain !important; /* Prevent bounce affecting parent */
+    -webkit-transform: translate3d(0, 0, 0); /* Hardware acceleration */
+  }
+
+  /* Additional mobile optimizations for content areas */
+  #optionsContainer {
+    /* Ensure options container can scroll properly */
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
+    max-height: calc(100vh - 140px); /* Account for header and button */
+  }
+
+  .mobile-nav-button {
+    /* Ensure buttons don't interfere with scrolling */
+    touch-action: manipulation;
+  }
+}
   </style>
   <script>
     // Pre-authentication: On page load, check if the user is authenticated.
