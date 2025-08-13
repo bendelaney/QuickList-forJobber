@@ -13,7 +13,7 @@
 			background-color: fff;
 			color: #333;
       margin: 0;
-      height: 100vh;
+      height: 100svh;
       display: flex;
       flex-direction: column;
       overflow: hidden; /* Prevent body scroll */
@@ -206,7 +206,7 @@
         display: flex;
         flex-direction: row; /* Side by side, not column */
         transition: transform 0.3s ease-in-out;
-        min-height: 100vh;
+        min-height: 100svh;
       }
 
       #wrapper.show-output {
@@ -215,7 +215,7 @@
       
       #sidebar {
         width: 100vw;
-        height: 100vh;
+        height: 100svh;
         max-width: none;
         border-right: none;
         border-bottom: none;
@@ -234,7 +234,7 @@
       
       #outputContainer {
         width: 100vw;
-        height: 100vh;
+        height: 100svh;
         flex-direction: column;
         max-height: none;
         padding: 0;
@@ -253,8 +253,8 @@
         border-radius: 0 !important;
         
         /* Calculate proper height accounting for button bar */
-        height: calc(100vh - 70px) !important; /* 70px for button bar */
-        max-height: calc(100vh - 70px) !important;
+        height: calc(100svh - 70px) !important; /* 70px for button bar */
+        max-height: calc(100svh - 70px) !important;
         
         /* CRITICAL MOBILE SCROLLING FIXES */
         overflow-y: auto !important;
@@ -274,7 +274,7 @@
         overflow-y: auto;
         -webkit-overflow-scrolling: touch;
         touch-action: pan-y;
-        max-height: calc(100vh - 140px); /* Account for header and button */
+        max-height: calc(100svh - 140px); /* Account for header and button */
       }
 
       /* Navigation buttons */
@@ -335,7 +335,7 @@
     @media (min-width: 769px) {
       #wrapper {
         flex-direction: row;
-        height: 100vh; /* Ensure full height */
+        height: 100svh; /* Ensure full height */
       }
       
       #optionsContainer {
