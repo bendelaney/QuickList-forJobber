@@ -126,6 +126,9 @@
         margin: 10px 0 2px 0;
         display: flex;
         align-items: center;
+        &:first-child {
+          margin-top: 0;
+        }
       }
     }
 
@@ -688,9 +691,28 @@
           <!-- <label class="calendar-label">Select Date Range:</label> -->
           <div id="dateRangeCalendar"></div>
         </div>
-        
+
         <div class="input-group">
-          <h4>Sorting</h4>
+          <h4>Display</h4>
+          <p><input type="checkbox" id="showDatesCheckbox"><label for="showDatesCheckbox">Dates</label></p>
+          <div id="dateOptionsContainer" class="date-options" style="display: none; margin-left: 20px; margin-top: 10px;">
+            <p>
+              <input type="radio" id="showDatesAll" name="dateDisplay" value="all">
+              <label for="showDatesAll">All Dates</label>
+            </p>
+            <p>
+              <input type="radio" id="showDatesWeekdayOnly" name="dateDisplay" value="weekdayOnly">
+              <label for="showDatesWeekdayOnly">Only Weekdays</label>
+            </p>
+          </div>
+          <p><input type="checkbox" id="showTimeCheckbox"><label for="showTimeCheckbox">Times</label></p>
+          <p><input type="checkbox" id="showValueCheckbox"><label for="showValueCheckbox">$ Value</label></p>
+          <p><input type="checkbox" id="showSalespersonCheckbox"><label for="showSalespersonCheckbox">Salesperson</label></p>
+          <p><input type="checkbox" id="showRangeInfoCheckbox" checked><label for="showRangeInfoCheckbox">Range Summary</label></p>
+        </div>
+
+        <div class="input-group">
+          <!-- <h4>Sorting</h4> -->
           <p>
             <label for="sortBySelect">Sort by:</label>
             <select id="sortBySelect">
@@ -729,21 +751,6 @@
           </div>
         </div>
   
-        <div class="input-group">
-          <h4>Display</h4>
-          <p>
-            <label for="showDatesSelect">Dates:</label>
-            <select id="showDatesSelect">
-              <option value="weekdayOnly">Show Only Weekdays</option>
-              <option value="all">Show All Dates</option>
-              <option value="none" selected>Don't Show Dates</option>
-            </select>
-          </p>
-          <p><input type="checkbox" id="showRangeInfoCheckbox" checked><label for="showRangeInfoCheckbox">Include Range Summary <span>(at top of list)</span></label></p>
-          <p><input type="checkbox" id="showValueCheckbox"><label for="showValueCheckbox">Show $ Value</label></p>
-          <p><input type="checkbox" id="showSalespersonCheckbox"><label for="showSalespersonCheckbox">Show Salesperson</label></p>
-        </div>
-
         <p>
           <button id="refreshDataBtn" class="button active">Refresh Data</button>
         </p>
@@ -781,10 +788,12 @@
     const DEFAULT_SETTINGS = {
       sortBy: "date",
       annual: "include",
-      showDates: "none",
+      showDates: false,
+      dateDisplayType: "all",
       showValue: false,
       showSalesperson: true,
       showRangeInfo: true,
+      showTime: false,
       startDate: null,
       endDate: null,
       salespersonFilter: "all",
@@ -798,13 +807,18 @@
         selectedSalespeople.push(checkbox.value);
       });
 
+      const showDatesCheckbox = document.getElementById('showDatesCheckbox');
+      const selectedDateType = document.querySelector('input[name="dateDisplay"]:checked');
+
       const currentSettings = {
         sortBy: sortBySelect.value,
         annual: annualSelect.value,
-        showDates: showDatesSelect.value,
+        showDates: showDatesCheckbox.checked,
+        dateDisplayType: selectedDateType ? selectedDateType.value : 'weekdayOnly',
         showValue: showValueCheckbox.checked,
         showSalesperson: showSalespersonCheckbox.checked,
         showRangeInfo: showRangeInfoCheckbox.checked,
+        showTime: showTimeCheckbox.checked,
         startDate: STARTDATE ? STARTDATE.toISOString() : null,
         endDate: ENDDATE ? ENDDATE.toISOString() : null,
         salespersonFilter: document.getElementById('salespersonFilterSelect').value,
@@ -832,14 +846,61 @@
     function applySettings(settings) {
       sortBySelect.value = settings.sortBy;
       annualSelect.value = settings.annual;
-      showDatesSelect.value = settings.showDates;
+      
+      // Handle new checkbox/radio structure
+      const showDatesCheckbox = document.getElementById('showDatesCheckbox');
+      showDatesCheckbox.checked = settings.showDates;
+      
+      // Set the radio button based on dateDisplayType
+      const dateRadio = document.querySelector(`input[name="dateDisplay"][value="${settings.dateDisplayType}"]`);
+      if (dateRadio) {
+        dateRadio.checked = true;
+      }
+      
+      // Show/hide date options based on checkbox state
+      toggleDateOptions();
+      
       showValueCheckbox.checked = settings.showValue;
       showSalespersonCheckbox.checked = settings.showSalesperson;
       showRangeInfoCheckbox.checked = settings.showRangeInfo;
+      showTimeCheckbox.checked = settings.showTime;
       
       if (settings.salespersonFilter) {
         document.getElementById('salespersonFilterSelect').value = settings.salespersonFilter;
       }
+    }
+
+    // Function to toggle date options visibility
+    function toggleDateOptions() {
+      const showDatesCheckbox = document.getElementById('showDatesCheckbox');
+      const dateOptionsContainer = document.getElementById('dateOptionsContainer');
+      
+      if (showDatesCheckbox.checked) {
+        dateOptionsContainer.style.display = 'block';
+        
+        // If no radio button is currently selected, default to "all"
+        const selectedRadio = document.querySelector('input[name="dateDisplay"]:checked');
+        if (!selectedRadio) {
+          const allRadio = document.getElementById('showDatesAll');
+          if (allRadio) {
+            allRadio.checked = true;
+          }
+        }
+      } else {
+        dateOptionsContainer.style.display = 'none';
+      }
+    }
+
+    // Function to get current date display setting
+    function getDateDisplaySetting() {
+      const showDatesCheckbox = document.getElementById('showDatesCheckbox');
+      
+      if (!showDatesCheckbox.checked) {
+        return 'none';
+      }
+      
+      const selectedRadio = document.querySelector('input[name="dateDisplay"]:checked');
+      return selectedRadio ? selectedRadio.value : 'weekdayOnly';
     }
 
     // Function to extract unique salespeople from data
@@ -1001,6 +1062,17 @@
       return `${weekday} ${formattedDate}`;
     }
 
+    // Helper function to format a time string from a date
+    function formatTime(dateString) {
+      const date = new Date(dateString);
+      const timeFormatter = new Intl.DateTimeFormat('en-US', { 
+      hour: 'numeric', 
+      minute: '2-digit',
+      hour12: true
+      });
+      return timeFormatter.format(date); //.replace(/(am|pm)/i, '').trim();
+    }
+
     // Function to format the Jobber visits JSON into Markdown.
     function formatJobList(data, formatType) {
       formatType = formatType || 'markdown';
@@ -1015,10 +1087,11 @@
       let output = '';
       const sortBySelect = document.getElementById("sortBySelect");
       const annualSelect = document.getElementById("annualSelect");
-      const showDatesSelect = document.getElementById("showDatesSelect");
+      const showDatesCheckbox = document.getElementById("showDatesCheckbox");
       const showValueCheckbox = document.getElementById("showValueCheckbox");
       const showSalespersonCheckbox = document.getElementById("showSalespersonCheckbox");
       const showRangeInfoCheckbox = document.getElementById("showRangeInfoCheckbox");
+      const showTimeCheckbox = document.getElementById("showTimeCheckbox");
 
       let total = 0;
       let jobCount = 0;
@@ -1078,6 +1151,7 @@
       
       // Iterate over the visits and format them.
       visits.forEach(edge => {
+        // console.log('edge',edge);
         const titleParts = edge.node.title.match(/(^[^-]+)|(-[A-Z]+-)|([^-\s][^-\n]*[^-\s])|(-[^-\s][^-\n]*[^-\s])/g);
         let salespersonName = edge.node.job.salesperson ? edge.node.job.salesperson.name.first.trim() : 'Unknown';
         let includingLine = true;
@@ -1088,7 +1162,23 @@
         const workCode = titleParts[3] ? titleParts[3].trim() : '?';
         const jobberWebUri = edge.node.job.jobberWebUri;
         const googleMapsUrl = `https://www.google.com/maps/place/${address.replace(/\s\/\s/g, '+').replace(/\s/g, '+')}+Spokane,WA`;
-        const jobdate = formatDate(edge.node.startAt);
+        const jobdate = formatDate(edge.node.startAt); // the JOB date
+
+        const jobStartTime = formatTime(edge.node.startAt);
+        const jobEndTime = formatTime(edge.node.endAt);
+        const jobtime = (()=>{
+          if (!showTimeCheckbox.checked) return '';
+          let theTime = (jobStartTime && jobStartTime!=="12:00 AM") 
+            && (jobEndTime && jobEndTime!=="11:59 PM")
+            ? (jobStartTime + "-" + jobEndTime)
+            : (jobStartTime && jobStartTime!=="12:00 AM") 
+              ? jobStartTime 
+              : (jobEndTime && jobEndTime!=="11:59 PM") 
+              ? jobEndTime 
+              : '';
+          theTime = theTime.replace(/\s?(AM|PM)/gi, '').trim();
+          return theTime;
+        })();
 
         // Annual selector
         if (annualSelect.value === "include") {
@@ -1133,16 +1223,24 @@
           jobCount++;
           total += edge.node.job.total || 0;
 
+          // Get current date display setting
+          const dateDisplaySetting = getDateDisplaySetting();
+
           // If formatType is 'markdown', format the output as Markdown.
           if (formatType === 'markdown') {
+            // Dates
+            if (dateDisplaySetting === "all") {
+              jobLines += ` **\`${jobdate}\`** `;
+            } else if (dateDisplaySetting === "weekdayOnly" && !jobdate.startsWith("Sun ")) {
+              jobLines += ` **\`${jobdate}\`** `;
+            }
+
             // Format the job line as Markdown.
             jobLines += `[**${jobIdentifier}**](${jobberWebUri}) ${geoCode} [${address}](${googleMapsUrl}) - ${workCode}`;
 
-            // Dates
-            if (showDatesSelect.value === "all") {
-              jobLines += ` **\`${jobdate}\`**`;
-            } else if (showDatesSelect.value === "weekdayOnly" && !jobdate.startsWith("Sun ")) {
-              jobLines += ` **\`${jobdate}\`**`;
+            // Time
+            if (showTimeCheckbox.checked && jobtime!=='') {
+              jobLines += ` **\`${jobtime}\`**`;
             }
 
             // Value and Salesperson checkboxes
@@ -1154,10 +1252,13 @@
             }
           } else if (formatType === 'plaintext') {
             jobLines += `${jobIdentifier} ${geoCode} ${address} - ${workCode}`;
-            if (showDatesSelect.value === "all") {
+            if (dateDisplaySetting === "all") {
               jobLines += ` ${jobdate}`;
-            } else if (showDatesSelect.value === "weekdayOnly" && !jobdate.startsWith("Sun ")) {
+            } else if (dateDisplaySetting === "weekdayOnly" && !jobdate.startsWith("Sun ")) {
               jobLines += ` ${jobdate}`;
+            }
+            if (showTimeCheckbox.checked) {
+              jobLines += ` ${jobtime}`;
             }
             if (showValueCheckbox.checked) {
               jobLines += ` - $${edge.node.job.total ? edge.node.job.total : '?'}`;
@@ -1245,15 +1346,15 @@
       const startParam = startDateStr + "T00:00:00Z";
       const endParam = extendedEndDate + "T00:00:00Z";
 
-      console.log('=== FETCH VISITS DEBUG (UTC FIXED) ===');
-      console.log('Original STARTDATE:', STARTDATE);
-      console.log('Original ENDDATE:', ENDDATE);
-      console.log('End date + 1 day (local):', endDatePlusOne);
-      console.log('Formatted startDateStr (UTC):', startDateStr);
-      console.log('Extended endDate (UTC):', extendedEndDate);
-      console.log('Start parameter:', startParam);
-      console.log('End parameter:', endParam);
-      console.log('Full API URL:', `/api/visits?startDate=${encodeURIComponent(startParam)}&endDate=${encodeURIComponent(endParam)}`);
+      // console.log('=== FETCH VISITS DEBUG (UTC FIXED) ===');
+      // console.log('Original STARTDATE:', STARTDATE);
+      // console.log('Original ENDDATE:', ENDDATE);
+      // console.log('End date + 1 day (local):', endDatePlusOne);
+      // console.log('Formatted startDateStr (UTC):', startDateStr);
+      // console.log('Extended endDate (UTC):', extendedEndDate);
+      // console.log('Start parameter:', startParam);
+      // console.log('End parameter:', endParam);
+      // console.log('Full API URL:', `/api/visits?startDate=${encodeURIComponent(startParam)}&endDate=${encodeURIComponent(endParam)}`);
     
       // Fetch the visits from the server.
       try {
@@ -1274,16 +1375,16 @@
     
         const data = await response.json();
         console.log('API Response data:', data);
-        console.log('Number of visits returned:', data?.data?.visits?.edges?.length || 0);
+        // console.log('Number of visits returned:', data?.data?.visits?.edges?.length || 0);
         
         // Log first few visits for debugging
-        if (data?.data?.visits?.edges?.length > 0) {
-          console.log('First 3 visits:', data.data.visits.edges.slice(0, 3).map(edge => ({
-            title: edge.node.title,
-            startAt: edge.node.startAt,
-            date: new Date(edge.node.startAt).toLocaleDateString()
-          })));
-        }
+        // if (data?.data?.visits?.edges?.length > 0) {
+        //   console.log('First 3 visits:', data.data.visits.edges.slice(0, 3).map(edge => ({
+        //     title: edge.node.title,
+        //     startAt: edge.node.startAt,
+        //     date: new Date(edge.node.startAt).toLocaleDateString()
+        //   })));
+        // }
         
         DATA = data;
         populateSalespersonCheckboxes(data);
@@ -1297,8 +1398,9 @@
 
     const annualSelect = document.getElementById('annualSelect');
     const sortBySelect = document.getElementById("sortBySelect");
-    const showDatesSelect = document.getElementById("showDatesSelect");
+    const showDatesCheckbox = document.getElementById("showDatesCheckbox");
     const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+    const radioButtons = document.querySelectorAll('input[name="dateDisplay"]');
     const markdownOutput = document.getElementById('markdown-output');
 
     markdownOutput.addEventListener('input', () => {
@@ -1318,9 +1420,18 @@
       saveSettings();
     });
 
-    showDatesSelect.addEventListener('change', () => {
+    showDatesCheckbox.addEventListener('change', () => {
+      toggleDateOptions();
       formatAndDisplay();
       saveSettings();
+    });
+
+    // Add event listeners for radio buttons
+    radioButtons.forEach(radio => {
+      radio.addEventListener('change', () => {
+        formatAndDisplay();
+        saveSettings();
+      });
     });
 
     // Add event listener for salesperson filter select
@@ -1332,6 +1443,9 @@
 
     checkboxes.forEach(checkbox => {
       checkbox.addEventListener('change', () => {
+        if (checkbox.id === 'showDatesCheckbox') {
+          toggleDateOptions();
+        }
         formatAndDisplay();
         saveSettings();
       });

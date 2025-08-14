@@ -97,6 +97,7 @@ app.get('/api/visits', ensureAuthenticated, async (req, res) => {
             node {
               title
               startAt
+              endAt
               job {
                 jobType
                 jobberWebUri
