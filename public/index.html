@@ -380,7 +380,7 @@
       
       /* On mobile, ensure button bar doesn't interfere with scrolling */
       flex-shrink: 0;
-      height: 60px; /* Fixed height for calculations */
+      height: 30px; /* Fixed height for calculations */
     }
 
     .button {
@@ -391,6 +391,9 @@
       font-size: 13px;
       cursor: pointer;
       transition: background 0.2s;
+      display: flex;
+      /* gap: 8px; */
+      align-items: center;
     }
 
     .button.active {
@@ -398,6 +401,17 @@
       color: #fff;
       border: 1px solid #aaa;
       box-shadow: inset 0 0 5px rgb(30, 91, 14);
+    }
+
+    .preview-button #previewX {
+      display: none;
+      font-weight: bold;
+      font-size: 115%;
+      padding-left: 8px;
+    }
+
+    .preview-button.active #previewX {
+      display: block;
     }
 
     /* Custom dropdown styles */
@@ -739,7 +753,7 @@
 
     <div id="outputContainer">
       <div class="button-bar">
-        <button id="previewMarkdownBtn" class="preview-button button" title="Preview Markdown">Preview</button>
+        <button id="previewMarkdownBtn" class="preview-button button" title="Preview Markdown">Preview<span id="previewX">×</span></button>
         <div class="copy-dropdown-container">
           <button class="copy-dropdown-trigger" id="copyDropdownTrigger">Copy List as...</button>
           <div class="copy-dropdown-menu" id="copyDropdownMenu">
