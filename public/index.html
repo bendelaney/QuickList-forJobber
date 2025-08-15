@@ -230,7 +230,7 @@
         max-width: none;
         border-right: none;
         border-bottom: none;
-        padding: 16px 10px;
+        padding: 16px 10px 68px 16px;
         box-sizing: border-box;
         flex-shrink: 0;
         position: relative;
@@ -264,9 +264,9 @@
         border-radius: 0 !important;
         
         /* Calculate proper height accounting for button bar */
-        height: calc(100svh - 70px) !important; /* 70px for button bar */
-        max-height: calc(100svh - 70px) !important;
-        
+        height: calc(100svh - 50px) !important; /* 50px for button bar */
+        max-height: calc(100svh - 50px) !important;
+        padding-bottom: 70px;
         /* CRITICAL MOBILE SCROLLING FIXES */
         overflow-y: auto !important;
         overflow-x: hidden !important;
@@ -277,15 +277,6 @@
         
         /* Ensure they can actually scroll */
         flex: none !important; /* Don't use flex sizing on mobile */
-      }
-
-      /* Additional mobile optimizations for content areas */
-      #optionsContainer {
-        /* Ensure options container can scroll properly */
-        overflow-y: auto;
-        -webkit-overflow-scrolling: touch;
-        touch-action: pan-y;
-        max-height: calc(100vh - 140px); /* Account for header and button */
       }
 
       /* Navigation buttons */
