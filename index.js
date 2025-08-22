@@ -95,6 +95,7 @@ app.get('/api/visits', ensureAuthenticated, async (req, res) => {
         ) {
           edges {
             node {
+              id
               title
               startAt
               endAt
