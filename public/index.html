@@ -1684,44 +1684,47 @@
       // Initialize preview state on load
       updateMarkdownPreview();
 
-      // Mobile navigation functionality
-      let currentPanel = 0;
-      let navigationInitialized = false;
-
-      function initMobileNavigation() {
-        if (window.innerWidth <= 768 && !navigationInitialized) {
-          // Button navigation - attach listeners only once
-          document.getElementById('viewListBtn').addEventListener('click', () => navigateToPanel(1));
-          document.getElementById('optionsBtn').addEventListener('click', () => navigateToPanel(0));
-          navigationInitialized = true;
-        } else if (window.innerWidth > 768) {
-          navigationInitialized = false; // Reset for mobile when resizing
-        }
-      }
-
-      function navigateToPanel(panelIndex) {
-        currentPanel = panelIndex;
-        const wrapper = document.getElementById('wrapper');
-        const viewListBtn = document.getElementById('viewListBtn');
-        const optionsBtn = document.getElementById('optionsBtn');
-        
-        if (panelIndex === 0) {
-          // Show options panel
-          wrapper.classList.remove('show-output');
-          viewListBtn.style.display = 'block';
-          optionsBtn.style.display = 'none';
-        } else {
-          // Show output panel
-          wrapper.classList.add('show-output');
-          viewListBtn.style.display = 'none';
-          optionsBtn.style.display = 'block';
-        }
-      }
-
-      // Initialize navigation on load and resize
-      window.addEventListener('DOMContentLoaded', initMobileNavigation);
-      window.addEventListener('resize', initMobileNavigation);
     });
+  </script>
+
+  <!-- Mobile navigation functionality -->
+  <script>
+    let currentPanel = 0;
+    let navigationInitialized = false;
+
+    function initMobileNavigation() {
+      if (window.innerWidth <= 768 && !navigationInitialized) {
+        // Button navigation - attach listeners only once
+        document.getElementById('viewListBtn').addEventListener('click', () => navigateToPanel(1));
+        document.getElementById('optionsBtn').addEventListener('click', () => navigateToPanel(0));
+        navigationInitialized = true;
+      } else if (window.innerWidth > 768) {
+        navigationInitialized = false; // Reset for mobile when resizing
+      }
+    }
+
+    function navigateToPanel(panelIndex) {
+      currentPanel = panelIndex;
+      const wrapper = document.getElementById('wrapper');
+      const viewListBtn = document.getElementById('viewListBtn');
+      const optionsBtn = document.getElementById('optionsBtn');
+      
+      if (panelIndex === 0) {
+        // Show options panel
+        wrapper.classList.remove('show-output');
+        viewListBtn.style.display = 'block';
+        optionsBtn.style.display = 'none';
+      } else {
+        // Show output panel
+        wrapper.classList.add('show-output');
+        viewListBtn.style.display = 'none';
+        optionsBtn.style.display = 'block';
+      }
+    }
+
+    // Initialize navigation immediately when DOM is loaded
+    document.addEventListener('DOMContentLoaded', initMobileNavigation);
+    window.addEventListener('resize', initMobileNavigation);
   </script>
 </body>
 </html>
