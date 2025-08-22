@@ -1,7 +1,7 @@
 {
-  "name": "Jobber-VisitsToMarkdown",
+  "name": "QuickList-for-Jobber",
   "version": "1.0.0",
-  "description": "Live Jobber Visit List mini‑app with updated OAuth2 flow",
+  "description": "The fastest way to view a list of Jobber Visits.",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
