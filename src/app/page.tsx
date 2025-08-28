@@ -422,20 +422,56 @@ export default function Home() {
     }
   }, [startDate, endDate, isAuthenticated])
 
-  // Intercept outgoing links to open in new windows
+  // Intercept outgoing links to open in new windows (mobile-friendly)
   useEffect(() => {
-    const handleLinkClick = (e: MouseEvent) => {
+    const handleLinkInteraction = (e: Event) => {
       const target = e.target as HTMLElement
       const link = target.closest('a')
       
-      if (link && link.href && !link.href.startsWith(window.location.origin)) {
-        e.preventDefault()
-        window.open(link.href, '_blank', 'noopener,noreferrer')
+      // More robust link detection
+      if (!link || !link.href) return
+      
+      // Check if it's an external link
+      try {
+        const linkUrl = new URL(link.href, window.location.origin)
+        const isExternal = linkUrl.origin !== window.location.origin
+        
+        if (isExternal) {
+          e.preventDefault()
+          
+          // Mobile-friendly approach: try setting target first, then fallback to window.open
+          if (!link.hasAttribute('target')) {
+            link.setAttribute('target', '_blank')
+            link.setAttribute('rel', 'noopener noreferrer')
+            
+            // Trigger click programmatically for mobile compatibility
+            setTimeout(() => {
+              try {
+                link.click()
+              } catch (clickError) {
+                // Fallback to window.open if click fails
+                window.open(link.href, '_blank', 'noopener,noreferrer')
+              }
+            }, 0)
+          } else {
+            // Direct window.open as fallback
+            window.open(link.href, '_blank', 'noopener,noreferrer')
+          }
+        }
+      } catch (urlError) {
+        // If URL parsing fails, skip processing
+        console.warn('Invalid URL encountered:', link.href)
       }
     }
 
-    document.addEventListener('click', handleLinkClick)
-    return () => document.removeEventListener('click', handleLinkClick)
+    // Add both click and touchend event listeners for mobile compatibility
+    document.addEventListener('click', handleLinkInteraction)
+    document.addEventListener('touchend', handleLinkInteraction)
+    
+    return () => {
+      document.removeEventListener('click', handleLinkInteraction)
+      document.removeEventListener('touchend', handleLinkInteraction)
+    }
   }, [])
 
   // Don't render anything until authentication is checked
