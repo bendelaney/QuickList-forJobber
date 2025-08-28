@@ -1247,7 +1247,8 @@
         const geoCode = titleParts[1] ? titleParts[1].trim() : '?';
         const address = titleParts[2] ? titleParts[2].trim() : '?';
         const workCode = titleParts[3] ? titleParts[3].trim() : '?';
-        const jobberWebUri = edge.node.job.jobberWebUri + '?appointment_id=' + edge.node.id;
+        const visitId = atob(edge.node.id).replace(/gid:\/\/Jobber\/Visit\//, '');
+        const jobberWebUri = edge.node.job.jobberWebUri + '?appointment_id=' + visitId;
         const googleMapsUrl = `https://www.google.com/maps/place/${address.replace(/\s\/\s/g, '+').replace(/\s/g, '+')}+Spokane,WA`;
         const jobdate = formatDate(edge.node.startAt); // the JOB date
 
@@ -1783,6 +1784,15 @@
       window.addEventListener('DOMContentLoaded', initMobileNavigation);
       window.addEventListener('resize', initMobileNavigation);
     });
-  </script>
+
+    // open links in new tab
+    document.addEventListener('click', function(e) {
+      const link = e.target.closest('a');
+      if (link && link.href) {
+        e.preventDefault();
+        window.open(link.href, '_blank');
+      }
+    });
+</script>
 </body>
 </html>
