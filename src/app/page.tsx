@@ -198,9 +198,10 @@ export default function Home() {
         ...settings,
         startDate: startDate?.toISOString() || null,
         endDate: endDate?.toISOString() || null,
-        selectedSalespeople: salespeople.filter(sp => 
-          document.getElementById(`salesperson_${sp.replace(/[^a-zA-Z0-9]/g, '_')}`)?.checked
-        )
+        selectedSalespeople: salespeople.filter(sp => {
+          const checkbox = document.getElementById(`salesperson_${sp.replace(/[^a-zA-Z0-9]/g, '_')}`) as HTMLInputElement
+          return checkbox?.checked
+        })
       }
       localStorage.setItem('jobberSettings', JSON.stringify(updatedSettings))
       console.log('Settings saved:', updatedSettings)
