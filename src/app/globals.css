@@ -376,7 +376,7 @@ header span {
   font-weight: 800;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 750px) {
   body {
     overflow-x: hidden; /* Prevent horizontal scroll */
   }
@@ -523,7 +523,7 @@ header span {
 }
 
 /* Desktop styles remain unchanged */
-@media (min-width: 769px) {
+@media (min-width: 751px) {
   #wrapper {
     flex-direction: row;
     height: 100svh; /* Ensure full height */
@@ -713,7 +713,7 @@ header span {
   margin-left: 6px;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 760px) {
   .copied-indicator { 
     order: 1; 
     margin-left: 0; 

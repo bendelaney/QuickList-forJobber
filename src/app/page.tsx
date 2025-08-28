@@ -430,11 +430,14 @@ export default function Home() {
       
       if (link && link.href && !link.href.startsWith(window.location.origin)) {
         e.preventDefault()
-        window.open(link.href, '_blank', 'noopener,noreferrer')
+        
+        // Use location.assign for better mobile compatibility
+        // This works more reliably than window.open on mobile browsers
+        window.location.assign(link.href)
       }
     }
 
-    document.addEventListener('click', handleLinkClick)
+    document.addEventListener('click', handleLinkClick, { passive: false })
     return () => document.removeEventListener('click', handleLinkClick)
   }, [])
 
