@@ -1,10 +1,16 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
   title: "QuickList, for Jobber",
   description: "The fastest way to view a list of Jobber Visits.",
-  viewport: "width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0"
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1.0,
+  userScalable: false,
+  maximumScale: 1.0
 };
 
 export default function RootLayout({
