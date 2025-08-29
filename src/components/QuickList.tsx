@@ -151,6 +151,22 @@ export function formatJobList(
       let salespersonName = edge.node.job.salesperson ? edge.node.job.salesperson.name.first.trim() : 'Unknown';
       let includingLine = true;
   
+      /* 
+      TODO: 
+      this is where we will need to get values in a more robust way,
+      instead of just relying on the title syntax.
+      We'll need get the values from the job visit object directly.
+      I think ideally, we'll want to allow the user to define the 
+      contents of each "line" by selecting tokens from a predefined 
+      list of tokens (e.g., lastName, address, customFieldX, etc.)
+      Might be nice if they could choose which of the tokens was the 
+      link-out to the visit in Jobber. ?? 
+      The following will need retooling: 
+      - jobIdentifier
+      - address
+      - geoCode (custom field)
+      - workCode (custom field)
+      */
       const jobIdentifier = titleParts[0].trim();
       const geoCode = titleParts[1] ? titleParts[1].trim() : '?';
       const address = titleParts[2] ? titleParts[2].trim() : '?';
