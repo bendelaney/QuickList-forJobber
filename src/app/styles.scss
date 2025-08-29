@@ -892,20 +892,24 @@ header {
 
 /* Refresh button styles */
 #refreshDataBtn {
-  background: #388523;
-  color: white;
-  border: 1px solid #2a6619;
+  // background: #388523;
+  background-color: transparent;
+  color: #aaa;
+  border: 1px solid #aaa;
   border-radius: $boxRadius;
   padding: 10px 20px;
   font-size: 13px;
   font-weight: bold;
   cursor: pointer;
-  width: 100%;
+  // width: 100%;
+  margin-left: auto;
   transition: background 0.2s;
 }
 
 #refreshDataBtn:hover {
   background: #2a6619;
+  color: #fff;
+  border-color: #2a6619;
 }
 
 #refreshDataBtn:disabled {

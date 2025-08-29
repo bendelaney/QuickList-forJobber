@@ -1095,7 +1095,7 @@ export default function QuickList() {
                 onClick={handleRefresh}
                 disabled={isRefreshing}
               >
-                {isRefreshing ? '⟳ Refreshing...' : 'Refresh Data'}
+                {isRefreshing ? 'Refreshing...' : 'Refresh Data'}
               </button>
             </p>
           </div>
