@@ -50,7 +50,7 @@ export default function Home() {
   const [markdownOutput, setMarkdownOutput] = useState('')
   const [renderedMarkdown, setRenderedMarkdown] = useState('')
   const [copyMenuOpen, setCopyMenuOpen] = useState(false)
-  const [copiedIndicator, setCopiedIndicator] = useState('')
+  const [copyButtonState, setCopyButtonState] = useState('default')
   const [filterText, setFilterText] = useState('')
   const [data, setData] = useState<any>(null)
   const [startDate, setStartDate] = useState<Date | null>(null)
@@ -223,7 +223,10 @@ export default function Home() {
   }
 
   const formatAndDisplay = useCallback(() => {
-    if (!data) return
+    if (!data) {
+      setMarkdownOutput('')
+      return
+    }
     
     const formattedMarkdown = formatJobList(data, settings, startDate, endDate, 'markdown', filterText)
     setMarkdownOutput(formattedMarkdown)
@@ -326,11 +329,11 @@ export default function Home() {
     }
   }
 
-  const showCopied = (text: string) => {
-    setCopiedIndicator(text)
+  const showCopySuccess = () => {
+    setCopyButtonState('success')
     setTimeout(() => {
-      setCopiedIndicator('')
-    }, 2000)
+      setCopyButtonState('default')
+    }, 1500)
   }
 
   const handleCopyClick = (copyType: string) => {
@@ -340,7 +343,7 @@ export default function Home() {
     try {
       if (copyType === 'markdown') {
         success = copyToClipboard(markdownOutput)
-        if (success) showCopied('Copied Markdown')
+        if (success) showCopySuccess()
       } else if (copyType === 'richtext') {
         if (!renderedMarkdown.trim()) {
           alert('Activate preview first.')
@@ -370,7 +373,7 @@ export default function Home() {
           document.body.removeChild(tempDiv)
         }
         
-        if (success) showCopied('Copied Rich Text')
+        if (success) showCopySuccess()
       } else if (copyType === 'plaintext') {
         if (!data) {
           alert('No data yet.')
@@ -378,7 +381,7 @@ export default function Home() {
         }
         const plain = formatJobList(data, settings, startDate, endDate, 'plaintext', filterText)
         success = copyToClipboard(plain)
-        if (success) showCopied('Copied Plain Text')
+        if (success) showCopySuccess()
       }
       
       if (!success) {
@@ -683,14 +686,16 @@ export default function Home() {
             </button>
             <div className="copy-dropdown-container">
               <button
-                className="copy-dropdown-trigger"
+                className={`copy-dropdown-trigger ${copyButtonState === 'success' ? 'success' : ''}`}
                 id="copyDropdownTrigger"
                 onClick={(e) => {
                   e.stopPropagation()
-                  setCopyMenuOpen(!copyMenuOpen)
+                  if (copyButtonState === 'default') {
+                    setCopyMenuOpen(!copyMenuOpen)
+                  }
                 }}
               >
-                Copy List as...
+                {copyButtonState === 'success' ? '👍 Copied!' : 'Copy List as...'}
               </button>
               <div 
                 className={`copy-dropdown-menu ${copyMenuOpen ? 'show' : ''}`} 
@@ -716,11 +721,6 @@ export default function Home() {
                   Plain Text
                 </button>
               </div>
-              {copiedIndicator && (
-                <span className="copied-indicator copied-indicator-visible">
-                  {copiedIndicator}
-                </span>
-              )}
             </div>
           </div>
           

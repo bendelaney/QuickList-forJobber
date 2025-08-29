@@ -35,9 +35,9 @@ export function extractSalespeople(data: any): string[] {
 
 // Function to format the Jobber visits JSON into Markdown or plaintext
 export function formatJobList(data: any, settings: any, startDate: Date | null, endDate: Date | null, formatType: 'markdown' | 'plaintext' = 'markdown', filterText: string = ''): string {
-  if (!data?.data?.visits?.edges) return '';
+  if (!data?.data?.visits) return '';
   
-  const visits = [...data.data.visits.edges]; // Create a copy to avoid mutating original
+  const visits = data.data.visits.edges ? [...data.data.visits.edges] : []; // Create a copy to avoid mutating original
   
   // Sort visits based on geo code extracted from the title
   const getGeoCode = (edge: any): string => {
