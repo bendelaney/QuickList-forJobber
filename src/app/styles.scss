@@ -1,5 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
 
+$boxRadius: 8px;
+
 body {
   font-family: 'Inter', sans-serif;
   background-color: #fff;
@@ -43,40 +45,40 @@ input[type="checkbox"] {
 }
 
 header {
-  padding: 14px 20px;
+  padding: 16px 20px 12px;
   display: flex;
   justify-content: flex-start;
-  align-items: center;
+  align-items: baseline;
   gap: 8px;
   background: #f1f0e9;
   position: sticky;
   top: 0;
   z-index: 10;
   flex-shrink: 0;
+  
+  h1 {
+    color: #444;
+    margin: 0;
+    font-size: 18px;
+    text-shadow: 1px 1px 1px rgba(255, 255, 255, 1);
+    font-weight: 800;
+  }
+
+  span {
+    font-family: Georgia, 'Times New Roman', Times, serif;
+    font-style: italic;
+    font-weight: 400;
+    font-size: 0.9em;
+    // letter-spacing: 0.011em;
+  }
 }
 
 #optionsContainer {
   flex: 1;
   overflow-y: auto;
-  padding: 0 20px 20px;
+  padding: 0 20px 10px;
   font-size: 0.9em;
 }
-
-header h1 {
-  color: #454545;
-  margin: 0;
-  font-size: 16px;
-  text-shadow: 1px 1px 1px rgba(255, 255, 255, 1);
-  font-weight: 900;
-}
-
-header span {
-  font-family: Georgia, 'Times New Roman', Times, serif;
-  font-style: italic;
-  font-weight: normal;
-  font-size: 0.9em;
-}
-
 
 #optionsContainer label {
   margin-right: 5px;
@@ -88,7 +90,7 @@ header span {
   font-size: 1em;
   padding: 10px;
   padding-right: 32px;
-  border-radius: 8px;
+  border-radius: $boxRadius;
   border: 1px solid #ccc;
   width: 100%;
   appearance: none;
@@ -128,7 +130,9 @@ header span {
   margin-bottom: 12px;
   padding: 10px;
   background-color: #fcfcfc;
-  border-radius: 8px;
+  border-radius: $boxRadius;
+  // box-shadow: 0 2px 4px inset rgba(0,0,0,0.25)!important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.25)!important;
 }
 
 .input-group h4 {
@@ -173,10 +177,10 @@ header span {
 
 .flatpickr-calendar {
   margin: 0 auto;
-  /* box-shadow: 0 2px 8px rgba(0,0,0,0.15); */
-  box-shadow: 0 2px 4px inset rgba(0,0,0,0.3);
-  border-radius: 6px;
-  font-size: 13px;
+  // box-shadow: 0 2px 4px inset rgba(0,0,0,0.25)!important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.25)!important;
+  border-radius: $boxRadius!important;
+  font-size: 13px!important;
 }
 
 .flatpickr-calendar select {
@@ -231,7 +235,7 @@ header span {
   font-size: 0.95em;
   overflow: auto;
   color: #222;
-  border-radius: 8px;
+  border-radius: $boxRadius;
   box-shadow: 0 2px 4px inset rgba(0,0,0,0.3);
 }
 
@@ -249,7 +253,7 @@ header span {
   background: #ffffff;
   border-radius: 14px;
   padding: 28px 24px;
-  width: min(92vw, 240px);
+  width: min(92vw, 260px);
   box-shadow: 0 10px 24px rgba(0,0,0,0.12), 0 2px 6px rgba(0,0,0,0.08);
   border: 1px solid #e7e5dc;
 }
@@ -317,6 +321,7 @@ header span {
 
 #renderedMarkdown {
   flex: 1 1 0;
+  margin-top: 1px;
   min-height: 100px;
   box-sizing: border-box;
   padding: 12px 20px 20px;
@@ -325,8 +330,8 @@ header span {
   background-color: white;
   overflow: auto;
   color: #222;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px inset rgba(0,0,0,0.3);
+  border-radius: $boxRadius;
+  box-shadow: 0 2px 4px inset rgba(0,0,0,0.34);
 }
 
 #renderedMarkdown h1, 
@@ -338,10 +343,15 @@ header span {
 
 #renderedMarkdown p {
   margin: 0;
-  padding: 2px 0;
-  line-height: 1.75;
+  padding: 0;
+  line-height: 2em;
   color: #777;
   font-weight: 400;
+  // background: rgba(244,244,244,1);
+  // background: blue;
+  // border-radius: 11px;
+  // box-shadow: 0 0px 12px rgba(244,244,244,1);
+  // box-shadow: 0px 0px 22px rgba(244,244,244,1);
 }
 
 #renderedMarkdown code {
@@ -475,7 +485,7 @@ header span {
     background: #388523;
     color: white;
     border: 1px solid #2a6619;
-    border-radius: 8px;
+    border-radius: $boxRadius;
     padding: 12px 20px;
     font-size: 14px;
     font-weight: bold;
@@ -539,7 +549,7 @@ header span {
     display: flex;
     flex-direction: column;
     min-height: 0;
-    padding: 0 10px 0 0;
+    padding: 0 10px 10px 0;
     gap: 0;
     box-sizing: border-box;
     flex: 1;
@@ -577,7 +587,7 @@ header span {
 .button {
   background: #f1f0e9;
   border: 1px solid #bbb;
-  border-radius: 8px;
+  border-radius: $boxRadius;
   padding: 6px 14px;
   font-size: 13px;
   cursor: pointer;
@@ -607,11 +617,17 @@ header span {
   width: 32px;
   border-radius: 0;
   aspect-ratio: auto;
+
+  &:hover {
+    background-color: rgb(56, 133, 35);
+  }
+  &.active {
+    background-color: #aaa;
+    &:hover {background-color: #777;}
+  }
 }
 
-.preview-button.active {
-  background-color: #666;
-}
+
 
 /* Custom dropdown styles */
 .copy-dropdown-container {
@@ -624,7 +640,7 @@ header span {
 .copy-dropdown-trigger {
   background: #f1f0e9;
   border: 1px solid #bbb;
-  border-radius: 8px;
+  border-radius: $boxRadius;
   padding: 6px 26px 6px 14px;
   font-size: 13px;
   cursor: pointer;
@@ -648,7 +664,7 @@ header span {
   right: 0;
   background: white;
   border: 1px solid #bbb;
-  border-radius: 4px;
+  border-radius: $boxRadius;
   box-shadow: 0 2px 8px rgba(0,0,0,0.15);
   z-index: 1000;
   display: none;
@@ -674,11 +690,11 @@ header span {
 }
 
 .copy-dropdown-item:first-child {
-  border-radius: 4px 4px 0 0;
+  border-radius: $boxRadius $boxRadius 0 0;
 }
 
 .copy-dropdown-item:last-child {
-  border-radius: 0 0 4px 4px;
+  border-radius: 0 0 $boxRadius $boxRadius;
 }
 
 .filter-input {
@@ -686,7 +702,7 @@ header span {
   max-width: 200px;
   padding: 6px 12px;
   border: 1px solid #bbb;
-  border-radius: 8px;
+  border-radius: $boxRadius;
   font-size: 13px;
   background: white;
   transition: border-color 0.2s;
@@ -789,7 +805,7 @@ header span {
   background: #388523;
   color: white;
   border: 1px solid #2a6619;
-  border-radius: 8px;
+  border-radius: $boxRadius;
   padding: 10px 20px;
   font-size: 13px;
   font-weight: bold;

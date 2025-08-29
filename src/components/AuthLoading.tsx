@@ -31,7 +31,7 @@ export default function AuthLoading({ state = "loading", message }: Props) {
           <div className="spinner" aria-label="Loading" />
           <p>{defaultMessage}</p>
           {state === "redirecting" && (
-            <small>If you are not redirected, please wait a moment…</small>
+            <small>just another moment…</small>
           )}
         </div>
       </div>

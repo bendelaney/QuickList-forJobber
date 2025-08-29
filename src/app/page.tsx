@@ -668,7 +668,7 @@ export default function Home() {
             <input
               type="text"
               id="filterInput"
-              placeholder="Filter jobs..."
+              placeholder="Filter by..."
               className="filter-input"
               value={filterText}
               onChange={(e) => setFilterText(e.target.value)}
