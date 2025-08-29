@@ -361,9 +361,9 @@ header {
   strong code {
     display: block;
     font-family: Inconsolata;
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 600;
-    padding: 1px 3px;
+    padding: 1px 3px 0;
     background-color: rgb(204, 216, 201);
     // border: 1px solid rgb(141, 187, 129);
     box-shadow: 0.5px 1px 1.5px rgb(85, 132, 74); 
@@ -374,6 +374,14 @@ header {
 
   strong code {
     font-weight: 900;
+  }
+
+  > strong:first-child > code {
+    min-width: 55px;
+    text-align: center;
+    color: #545454;
+    background-color: rgb(223, 223, 223);
+    box-shadow: 0.5px 1px 1.5px rgb(144, 144, 144);
   }
 }
 
