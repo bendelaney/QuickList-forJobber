@@ -183,6 +183,8 @@ header {
   box-shadow: 0 1px 3px rgba(0,0,0,0.25)!important;
   border-radius: $boxRadius!important;
   font-size: 13px!important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
 }
 
 .flatpickr-calendar select {
@@ -812,6 +814,10 @@ header {
   color: rgb(56, 133, 35)!important;
   -webkit-box-shadow: -5px 0 0 rgb(138, 198, 121),5px 0 0 rgb(138, 198, 121)!important;
   box-shadow: -5px 0 0 rgb(138, 198, 121),5px 0 0 rgb(138, 198, 121)!important;
+}
+
+.flatpickr-day.startRange + .flatpickr-day.endRange {
+  box-shadow: -5px 0 0 rgb(138, 198, 121) !important;
 }
 
 .flatpickr-day.today {
