@@ -220,15 +220,15 @@ export function formatJobList(data: any, settings: any, startDate: Date | null, 
     
     if (formatType === 'markdown') {
       if (settings.showValue) {
-        output += `# **${formattedStartDate} - ${formattedEndDate}** **\`${jobCount} Jobs\`** **\`$${total}\`**\n\n`;
+        output += `# **${formattedStartDate} &ndash; ${formattedEndDate}** **\`${jobCount} Jobs\`** **\`$${total}\`**\n\n`;
       } else {
-        output += `# **${formattedStartDate} - ${formattedEndDate}** **\`${jobCount} Jobs\`**\n\n`;
+        output += `# **${formattedStartDate} &ndash; ${formattedEndDate}** **\`${jobCount} Jobs\`**\n\n`;
       }
     } else if (formatType === 'plaintext') {
       if (settings.showValue) {
-        output += `${formattedStartDate} - ${formattedEndDate}, ${jobCount} Jobs, $${total}\n\n------------------------------\n\n`;
+        output += `${formattedStartDate}&ndash;${formattedEndDate}, ${jobCount} Jobs, $${total}\n\n------------------------------\n\n`;
       } else {
-        output += `${formattedStartDate} - ${formattedEndDate}, ${jobCount} Jobs\n\n------------------------------\n\n`;
+        output += `${formattedStartDate}&ndash;${formattedEndDate}, ${jobCount} Jobs\n\n------------------------------\n\n`;
       }
     }
   }
