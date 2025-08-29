@@ -1,4 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inconsolata:wght@400..900&display=swap');
 
 $boxRadius: 8px;
 
@@ -21,9 +22,9 @@ label span {
   font-weight: normal;
 }
 
-input[type="checkbox"] {
-  margin-right: 10px;
-  transform: scale(1.6);
+input[type="checkbox"], input[type="radio"] {
+  margin-right: 8px;
+  transform: scale(1.5);
 }
 
 #wrapper {
@@ -324,7 +325,7 @@ header {
   margin-top: 1px;
   min-height: 100px;
   box-sizing: border-box;
-  padding: 12px 20px 20px;
+  padding: 12px 0px 20px;
   border: none;
   font-size: 0.9em;
   background-color: white;
@@ -342,43 +343,61 @@ header {
 }
 
 #renderedMarkdown p {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   margin: 0;
-  padding: 0;
-  line-height: 2em;
+  padding: 0 20px;
+  line-height: 2.05em;
   color: #777;
   font-weight: 400;
-  // background: rgba(244,244,244,1);
-  // background: blue;
-  // border-radius: 11px;
-  // box-shadow: 0 0px 12px rgba(244,244,244,1);
-  // box-shadow: 0px 0px 22px rgba(244,244,244,1);
+  white-space: nowrap;
+
+  // &:hover {
+  //   background-color: rgba(0, 0, 0, 0.03);
+  // }
+  
+  code,
+  strong code {
+    display: block;
+    font-family: Inconsolata;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 1px 3px;
+    background-color: rgb(204, 216, 201);
+    // border: 1px solid rgb(141, 187, 129);
+    box-shadow: 0.5px 1px 1.5px rgb(85, 132, 74); 
+    border-radius: 5px;
+    color: rgb(22, 75, 7);
+    line-height: 1.25em !important;
+  }
+
+  strong code {
+    font-weight: 900;
+  }
 }
 
-#renderedMarkdown code {
-  padding: 1px 4px;
-  background-color: rgb(204, 216, 201);
-  border: 1px solid rgb(81, 145, 63);
-  border-radius: 3px;
-  color: rgb(22, 75, 7);
-}
 
 #renderedMarkdown code + code {
   background-color: rgb(211, 220, 228);
-  border: 1px solid rgb(63, 111, 145);
+  // border: 1px solid rgb(63, 111, 145);
+  box-shadow: 0.5px 1px 1.5px rgb(63, 111, 145); 
   color: rgb(25, 62, 87);
 }
 
 #renderedMarkdown a {
-  transition: border-bottom-color 0.14s ease;
-  border-bottom: 2px solid rgba(22, 75, 7, 0);
-  font-weight: 400;
-  /* color: rgb(22, 75, 7); */
+  transition: all 0.15s ease;
+  line-height: 1.2;
+  // line-height: 2.05em;
+  transition: border-bottom-color 0.15s ease;
+  border-bottom: 2px dotted rgba(22, 75, 7, 0.1);
+  margin-bottom: -2px;
   color: #777;
   text-decoration: none;
 }
 
 #renderedMarkdown a:hover {
-  border-bottom-color: rgba(22, 75, 7, 1);
+  border-bottom: 2px solid rgba(22, 75, 7, 1);
 }
 
 #renderedMarkdown a strong {
