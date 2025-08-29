@@ -819,11 +819,15 @@ header {
   color: #999;
 }
 
-@media (max-width: 760px) {
+@media (max-width: 755px) {
   .button-bar {
     justify-content: space-between; /* push ends apart on mobile */
     padding-left: 10px;
     padding-right: 10px;
+
+    .preview-button {
+      margin-left: auto;
+    }
   }
   .copy-dropdown-container {
     margin-left: auto; /* ensures it hugs right even if spacing rules change */
