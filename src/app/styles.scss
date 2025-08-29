@@ -228,7 +228,8 @@ header {
 .output {
   flex: 1 1 0;
   min-height: 100px;
-  font-family: monospace;
+  font-family: Inconsolata;
+  line-height: 1.1;
   box-sizing: border-box;
   padding: 20px;
   border: none;
@@ -482,7 +483,6 @@ header {
     overflow: visible;
   }
   
-  /* Make both textarea and rendered markdown scrollable */
   textarea.output, #renderedMarkdown {
     width: 100% !important;
     min-height: 200px !important;
