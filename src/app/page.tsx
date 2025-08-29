@@ -43,6 +43,8 @@ declare global {
 
 import AuthLoading from '@/components/AuthLoading'
 
+export const revalidate = 0
+
 export default function Home() {
   const [showOutput, setShowOutput] = useState(false)
   const [isMarkdownPreviewing, setIsMarkdownPreviewing] = useState(true)
