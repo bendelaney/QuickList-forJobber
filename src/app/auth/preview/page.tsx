@@ -5,13 +5,14 @@ type SearchParams = {
   message?: string
 }
 
-export default function AuthPreview({
+export default async function AuthPreview({
   searchParams,
 }: {
-  searchParams: SearchParams
+  searchParams: Promise<SearchParams>
 }) {
-  const state = searchParams.state ?? "loading"
-  const message = searchParams.message
+  const params = await searchParams
+  const state = params.state ?? "loading"
+  const message = params.message
 
   return <AuthLoading state={state} message={message} />
 }

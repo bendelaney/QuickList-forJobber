@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import axios from 'axios'
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams
@@ -27,13 +26,21 @@ export async function GET(request: NextRequest) {
       code: code?.substring(0, 10) + '...' // Log partial code for debugging
     })
 
-    const tokenResponse = await axios.post(process.env.JOBBER_TOKEN_URL!, tokenData, {
+    const tokenResponse = await fetch(process.env.JOBBER_TOKEN_URL!, {
+      method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded'
-      }
+      },
+      body: tokenData
     })
     
-    const { access_token, refresh_token } = tokenResponse.data
+    if (!tokenResponse.ok) {
+      console.error('Token exchange failed:', tokenResponse.status, tokenResponse.statusText)
+      return NextResponse.json({ error: 'Authentication failed' }, { status: 500 })
+    }
+    
+    const tokenData_response = await tokenResponse.json()
+    const { access_token, refresh_token } = tokenData_response
     
     // In a real app, you'd store these tokens securely (database, encrypted cookies, etc.)
     // For now, we'll use a simple cookie approach
@@ -56,16 +63,11 @@ export async function GET(request: NextRequest) {
     
     return response
     
-  } catch (error) {
+  } catch (error: any) {
     console.error('OAuth callback error:', error)
-    if (axios.isAxiosError(error)) {
-      console.error('Response status:', error.response?.status)
-      console.error('Response data:', error.response?.data)
-      console.error('Response headers:', error.response?.headers)
-    }
     return NextResponse.json({ 
       error: 'Authentication failed',
-      details: axios.isAxiosError(error) ? error.response?.data : 'Unknown error'
+      details: error.message || 'Unknown error'
     }, { status: 500 })
   }
 }

@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
-import axios from 'axios'
 
 export async function GET(request: NextRequest) {
   const cookieStore = await cookies()
@@ -63,25 +62,28 @@ export async function GET(request: NextRequest) {
   }
   
   try {
-    const response = await axios.post(process.env.JOBBER_API_URL!, graphQLQuery, {
+    const response = await fetch(process.env.JOBBER_API_URL!, {
+      method: 'POST',
       headers: {
         'Authorization': `Bearer ${accessToken.value}`,
         'Content-Type': 'application/json',
-        'X-JOBBER-GRAPHQL-VERSION': process.env.JOBBER_API_VERSION
-      }
+        'X-JOBBER-GRAPHQL-VERSION': process.env.JOBBER_API_VERSION!
+      },
+      body: JSON.stringify(graphQLQuery)
     })
     
-    return NextResponse.json(response.data)
-  } catch (error: any) {
-    if (error.response) {
+    if (!response.ok) {
       console.error('Error fetching visits:', {
-        status: error.response.status,
-        data: error.response.data,
-        headers: error.response.headers
+        status: response.status,
+        statusText: response.statusText
       })
-    } else {
-      console.error('Error fetching visits:', error.message)
+      return NextResponse.json({ error: 'Failed to fetch visits' }, { status: 500 })
     }
+    
+    const data = await response.json()
+    return NextResponse.json(data)
+  } catch (error: any) {
+    console.error('Error fetching visits:', error.message)
     return NextResponse.json({ error: 'Failed to fetch visits' }, { status: 500 })
   }
 }
