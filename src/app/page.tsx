@@ -429,15 +429,16 @@ export default function Home() {
       const link = target.closest('a')
       
       if (link && link.href && !link.href.startsWith(window.location.origin)) {
-        e.preventDefault()
-        
-        // Use location.assign for better mobile compatibility
-        // This works more reliably than window.open on mobile browsers
-        window.location.assign(link.href)
+        // Don't prevent default - let the browser handle external links naturally
+        // Just ensure target="_blank" for better mobile experience
+        if (!link.target) {
+          link.target = '_blank'
+          link.rel = 'noopener noreferrer'
+        }
       }
     }
 
-    document.addEventListener('click', handleLinkClick, { passive: false })
+    document.addEventListener('click', handleLinkClick, { passive: true })
     return () => document.removeEventListener('click', handleLinkClick)
   }, [])
 
