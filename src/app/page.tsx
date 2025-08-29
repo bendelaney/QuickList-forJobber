@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import Script from 'next/script'
-import { formatJobList, extractSalespeople, formatDate } from '../utils/jobFormatter'
+import { formatJobList, extractSalespeople, formatDate } from '@/utils/jobFormatter'
 
 interface Settings {
   sortBy: string
@@ -41,7 +41,7 @@ declare global {
   }
 }
 
-import AuthLoading from '../components/AuthLoading'
+import AuthLoading from '@/components/AuthLoading'
 
 export default function Home() {
   const [showOutput, setShowOutput] = useState(false)
