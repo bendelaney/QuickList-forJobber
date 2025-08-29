@@ -24,6 +24,7 @@ label span {
 input[type="checkbox"], input[type="radio"] {
   margin-right: 8px;
   transform: scale(1.5);
+  margin-left: 6px;
 }
 
 #wrapper {
@@ -136,12 +137,46 @@ header {
 }
 
 .input-group h4 {
-  margin-top: 0;
-  margin-bottom: 0.75em;
+  margin: 0;
   font-size: 0.76rem;
   text-transform: uppercase;
   color: #999;
   letter-spacing: 0.05em;
+}
+
+// Collapsible section headers
+.section-header {
+  cursor: pointer;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  transition: color 0.2s ease;
+  
+  &:hover {
+    color: #666;
+  }
+}
+.section-content {
+  margin-top: 0.75em;
+}
+
+// Caret styling
+.caret {
+  margin-right: 8px;
+  font-size: 10px;
+  transition: transform 0.2s ease;
+  transform: rotate(-90deg);
+  display: inline-block;
+  
+  &.expanded {
+    transform: rotate(0deg);
+  }
+}
+
+// Section content with smooth transitions
+.section-content {
+  overflow: hidden;
+  transition: all 0.3s ease;
 }
 
 .salesperson-checkboxes {
@@ -687,6 +722,7 @@ header {
 
 .copy-dropdown-trigger {
   background: #f1f0e9;
+  color: #888;
   border: 1px solid #bbb;
   border-radius: $boxRadius;
   padding: 6px 26px 6px 14px;
@@ -704,10 +740,21 @@ header {
   background-color: transparent;
   cursor: pointer;
 
+  &:hover {
+    color: #444;
+    border-color: #444;
+  }
+
   &.success {
     text-align: center;
     background-image: none;
     padding: 6px 14px;
+  }
+
+  &.menu-open {
+    color: #444;
+    background-color: #ddd;
+    border-color: #999;
   }
 }
 

@@ -21,6 +21,13 @@ interface Settings {
   endDate: string | null
   salespersonFilter: string
   selectedSalespeople: string[]
+  dayFilter: string
+  selectedDays: string[]
+  expandedSections: {
+    display: boolean
+    sorting: boolean
+    visibility: boolean
+  }
 }
 
 const DEFAULT_SETTINGS: Settings = {
@@ -35,7 +42,14 @@ const DEFAULT_SETTINGS: Settings = {
   startDate: null,
   endDate: null,
   salespersonFilter: "all",
-  selectedSalespeople: []
+  selectedSalespeople: [],
+  dayFilter: "all",
+  selectedDays: [],
+  expandedSections: {
+    display: true,
+    sorting: true,
+    visibility: true
+  }
 }
 
 
@@ -221,6 +235,18 @@ export function formatJobList(
           includingLine = false;
         }
       }
+
+      // Day filter
+      if (includingLine && settings.dayFilter === 'showSelected') {
+        const jobDate = new Date(edge.node.startAt);
+        const dayOfWeek = jobDate.getDay(); // 0 = Sunday, 1 = Monday, etc.
+        const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        const dayName = dayNames[dayOfWeek];
+        
+        if (!settings.selectedDays || settings.selectedDays.length === 0 || !settings.selectedDays.includes(dayName)) {
+          includingLine = false;
+        }
+      }
   
       // Text filter
       if (includingLine && filterText && !edge.node.title.toLowerCase().includes(filterText.toLowerCase())) {
@@ -238,7 +264,9 @@ export function formatJobList(
           if (settings.showDates) {
             if (settings.dateDisplayType === "all") {
               jobLines += ` **\`${jobdate}\`** `;
-            } else if (settings.dateDisplayType === "weekdayOnly" && !jobdate.startsWith("Sun ")) {
+            } else if (settings.dateDisplayType === "weekdayOnly" && !jobdate.startsWith("Sun ") && !jobdate.startsWith("Sat ")) {
+              jobLines += ` **\`${jobdate}\`** `;
+            } else if (settings.dateDisplayType === "weekendOnly" && (jobdate.startsWith("Sun ") || jobdate.startsWith("Sat "))) {
               jobLines += ` **\`${jobdate}\`** `;
             }
           }
@@ -264,7 +292,9 @@ export function formatJobList(
           if (settings.showDates) {
             if (settings.dateDisplayType === "all") {
               jobLines += ` ${jobdate}`;
-            } else if (settings.dateDisplayType === "weekdayOnly" && !jobdate.startsWith("Sun ")) {
+            } else if (settings.dateDisplayType === "weekdayOnly" && !jobdate.startsWith("Sun ") && !jobdate.startsWith("Sat ")) {
+              jobLines += ` ${jobdate}`;
+            } else if (settings.dateDisplayType === "weekendOnly" && (jobdate.startsWith("Sun ") || jobdate.startsWith("Sat "))) {
               jobLines += ` ${jobdate}`;
             }
           }
@@ -328,6 +358,22 @@ export default function QuickList() {
   
   const dateRangeRef = useRef<HTMLDivElement>(null)
   const flatpickrInstance = useRef<any>(null)
+
+  // Toggle section visibility
+  const toggleSection = (section: 'display' | 'sorting' | 'visibility') => {
+    const currentExpanded = settings.expandedSections || {
+      display: true,
+      sorting: true,
+      visibility: true
+    }
+    
+    updateSettings({
+      expandedSections: {
+        ...currentExpanded,
+        [section]: !currentExpanded[section]
+      }
+    })
+  }
 
   // Load settings on mount
   useEffect(() => {
@@ -776,9 +822,14 @@ export default function QuickList() {
               <div ref={dateRangeRef} id="dateRangeCalendar"></div>
             </div>
 
-            <div className="input-group">
-              <h4>Display</h4>
-              <p>
+            <div className="input-group display">
+              <h4 className="section-header" onClick={() => toggleSection('display')}>
+                <span className={`caret ${settings.expandedSections?.display !== false ? 'expanded' : ''}`}>▼</span>
+                Display Options
+              </h4>
+              {settings.expandedSections?.display !== false && (
+                <div className="section-content">
+                  <p>
                 <input
                   type="checkbox"
                   id="showDatesCheckbox"
@@ -811,6 +862,17 @@ export default function QuickList() {
                       onChange={(e) => updateSettings({ dateDisplayType: e.target.value })}
                     />
                     <label htmlFor="showDatesWeekdayOnly">Only Weekdays</label>
+                  </p>
+                  <p>
+                    <input
+                      type="radio"
+                      id="showDatesWeekendOnly"
+                      name="dateDisplay"
+                      value="weekendOnly"
+                      checked={settings.dateDisplayType === 'weekendOnly'}
+                      onChange={(e) => updateSettings({ dateDisplayType: e.target.value })}
+                    />
+                    <label htmlFor="showDatesWeekendOnly">Only Weekends</label>
                   </p>
                 </div>
               )}
@@ -849,12 +911,20 @@ export default function QuickList() {
                   checked={settings.showRangeInfo}
                   onChange={(e) => updateSettings({ showRangeInfo: e.target.checked })}
                 />
-                <label htmlFor="showRangeInfoCheckbox">Range Summary</label>
-              </p>
+                <label htmlFor="showRangeInfoCheckbox">List Summary Title</label>
+                  </p>
+                </div>
+              )}
             </div>
 
-            <div className="input-group">
-              <p>
+            <div className="input-group sorting">
+              <h4 className="section-header" onClick={() => toggleSection('sorting')}>
+                <span className={`caret ${settings.expandedSections?.sorting !== false ? 'expanded' : ''}`}>▼</span>
+                Sorting
+              </h4>
+              {settings.expandedSections?.sorting !== false && (
+                <div className="section-content">
+                  <p>
                 <label htmlFor="sortBySelect">Sort by:</label>
                 <select
                   id="sortBySelect"
@@ -868,38 +938,46 @@ export default function QuickList() {
                   <option value="geoCodeThenValue">GeoCode, then $ Value</option>
                   <option value="salesperson">Salesperson</option>
                 </select>
-              </p>
+                  </p>
+                </div>
+              )}
             </div>
 
-            <div className="input-group">
-              <h4>Visibility</h4>
-              <p>
-                <label htmlFor="annualSelect">Annual Jobs:</label>
-                <select
-                  id="annualSelect"
-                  value={settings.annual}
-                  onChange={(e) => updateSettings({ annual: e.target.value })}
-                >
-                  <option value="include">Include Annual Jobs</option>
-                  <option value="exclude">Exclude Annual Jobs</option>
-                  <option value="excludeUnconfirmed">Exclude Unconfirmed Annual Jobs</option>
-                  <option value="annualOnly">Show Only Annual Jobs</option>
-                  <option value="annualOnlyConfirmed">Show Only *Confirmed* Annual Jobs</option>
-                  <option value="annualOnlyUnconfirmed">Show Only *Unconfirmed* Annual Jobs</option>
-                </select>
-              </p>
-              <p>
-                <label htmlFor="salespersonFilterSelect">Salesperson:</label>
-                <select
-                  id="salespersonFilterSelect"
-                  value={settings.salespersonFilter}
-                  onChange={(e) => updateSettings({ salespersonFilter: e.target.value })}
-                >
-                  <option value="all">Include All</option>
-                  <option value="showSelected">Include Selected...</option>
-                </select>
-              </p>
-              {settings.salespersonFilter === 'showSelected' && (
+            <div className="input-group visibility">
+              <h4 className="section-header" onClick={() => toggleSection('visibility')}>
+                <span className={`caret ${settings.expandedSections?.visibility !== false ? 'expanded' : ''}`}>▼</span>
+                Inclusion
+              </h4>
+              {settings.expandedSections?.visibility !== false && (
+              <div className="section-content">
+                <p>
+                  <label htmlFor="annualSelect">Annual Jobs:</label>
+                  <select
+                    id="annualSelect"
+                    value={settings.annual}
+                    onChange={(e) => updateSettings({ annual: e.target.value })}
+                  >
+                    <option value="include">Include Annual Jobs</option>
+                    <option value="exclude">Exclude Annual Jobs</option>
+                    <option value="excludeUnconfirmed">Exclude Unconfirmed Annual Jobs</option>
+                    <option value="annualOnly">Show Only Annual Jobs</option>
+                    <option value="annualOnlyConfirmed">Show Only *Confirmed* Annual Jobs</option>
+                    <option value="annualOnlyUnconfirmed">Show Only *Unconfirmed* Annual Jobs</option>
+                  </select>
+                </p>
+                <p>
+                  <label htmlFor="salespersonFilterSelect">Salesperson:</label>
+                  <select
+                    id="salespersonFilterSelect"
+                    value={settings.salespersonFilter}
+                    onChange={(e) => updateSettings({ salespersonFilter: e.target.value })}
+                  >
+                    <option value="all">Include All</option>
+                    <option value="showSelected">Include Selected...</option>
+                  </select>
+                </p>
+
+                {settings.salespersonFilter === 'showSelected' && (
                 <div id="salespersonCheckboxes" className="salesperson-checkboxes salesperson-checkboxes-visible">
                   <p className="salesperson-select-all">
                     <input
@@ -944,6 +1022,69 @@ export default function QuickList() {
                     </p>
                   ))}
                 </div>
+                )}
+
+                <p>
+                  <label htmlFor="dayFilterSelect">Days:</label>
+                  <select
+                    id="dayFilterSelect"
+                    value={settings.dayFilter}
+                    onChange={(e) => updateSettings({ dayFilter: e.target.value })}
+                  >
+                    <option value="all">Include All Days</option>
+                    <option value="showSelected">Include Selected...</option>
+                  </select>
+                </p>
+
+                {settings.dayFilter === 'showSelected' && (
+                <div id="dayCheckboxes" className="salesperson-checkboxes salesperson-checkboxes-visible">
+                  <p className="salesperson-select-all">
+                    <input
+                      type="checkbox"
+                      id="day_all"
+                      checked={['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].every(day => 
+                        settings.selectedDays?.includes(day)
+                      )}
+                      onChange={(e) => {
+                        const allDays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+                        if (e.target.checked) {
+                          updateSettings({ selectedDays: [...allDays] })
+                        } else {
+                          updateSettings({ selectedDays: [] })
+                        }
+                      }}
+                    />
+                    <label htmlFor="day_all" className="salesperson-select-all-label">
+                      Select All:
+                    </label>
+                  </p>
+                  {['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map(day => (
+                    <p key={day} className="salesperson-item">
+                      <input
+                        type="checkbox"
+                        id={`day_${day}`}
+                        checked={settings.selectedDays?.includes(day) || false}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            updateSettings({
+                              selectedDays: [...(settings.selectedDays || []), day]
+                            })
+                          } else {
+                            updateSettings({
+                              selectedDays: (settings.selectedDays || []).filter(d => d !== day)
+                            })
+                          }
+                        }}
+                      />
+                      <label htmlFor={`day_${day}`}>
+                        {day}
+                      </label>
+                    </p>
+                  ))}
+                </div>
+                )}
+
+                </div>
               )}
             </div>
 
@@ -980,7 +1121,7 @@ export default function QuickList() {
             </button>
             <div className="copy-dropdown-container">
               <button
-                className={`copy-dropdown-trigger ${copyButtonState === 'success' ? 'success' : ''}`}
+                className={`copy-dropdown-trigger ${copyButtonState === 'success' ? 'success' : ''} ${copyMenuOpen ? 'menu-open' : ''}`}
                 id="copyDropdownTrigger"
                 onClick={(e) => {
                   e.stopPropagation()
