@@ -45,6 +45,7 @@ export async function GET(request: NextRequest) {
     // In a real app, you'd store these tokens securely (database, encrypted cookies, etc.)
     // For now, we'll use a simple cookie approach
     const baseUrl = request.nextUrl.origin
+    console.log('Redirecting to:', `${baseUrl}/`)
     const response = NextResponse.redirect(`${baseUrl}/`)
     response.cookies.set('access_token', access_token, { 
       httpOnly: true, 
