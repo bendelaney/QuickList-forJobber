@@ -3,7 +3,19 @@ import "./styles.scss";
 
 export const metadata: Metadata = {
   title: "QuickList, for Jobber",
-  description: "The fastest way to view a list of Jobber Visits.",
+  description: "The fastest way to view your Jobber Visits.",
+  icons: {
+    icon: [
+      { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
+      { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+    ],
+    apple: [
+      { url: '/apple-touch-icon-180x180.png', sizes: '180x180', type: 'image/png' },
+      { url: '/apple-touch-icon-167x167.png', sizes: '167x167', type: 'image/png' },
+      { url: '/apple-touch-icon-150x150.png', sizes: '150x150', type: 'image/png' },
+      { url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
+    ],
+  },
 };
 
 export const viewport: Viewport = {
