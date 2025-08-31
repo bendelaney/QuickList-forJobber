@@ -561,6 +561,10 @@ header {
     flex: none !important; /* Don't use flex sizing on mobile */
   }
 
+  #renderedMarkdown p {
+    padding-left: 0;
+  }
+  
   /* Navigation buttons */
   .mobile-nav-button {
     position: fixed;

@@ -468,6 +468,7 @@ export default function QuickList() {
         const dayElements = instance.calendarContainer.querySelectorAll('.flatpickr-day:not(.flatpickr-disabled)')
         
         dayElements.forEach((dayEl: HTMLElement) => {
+          // Mouse events (existing functionality)
           dayEl.addEventListener('mousedown', (e: MouseEvent) => {
             e.preventDefault()
             isDragging = true
@@ -483,6 +484,17 @@ export default function QuickList() {
               currentHoverElement = dayEl
             }
           })
+          
+          // Touch events for mobile support
+          dayEl.addEventListener('touchstart', (e: TouchEvent) => {
+            e.preventDefault()
+            isDragging = true
+            startElement = dayEl
+            currentHoverElement = dayEl
+            
+            // Simulate the first click on this element
+            dayEl.click()
+          }, { passive: false })
         })
         
         // Track mouse movement to continuously update current element
@@ -496,8 +508,33 @@ export default function QuickList() {
           }
         })
         
+        // Track touch movement to continuously update current element
+        instance.calendarContainer.addEventListener('touchmove', (e: TouchEvent) => {
+          if (isDragging) {
+            e.preventDefault()
+            // Get the touch point
+            const touch = e.touches[0]
+            // Find which day element is under the touch
+            const elementUnderTouch = document.elementFromPoint(touch.clientX, touch.clientY) as HTMLElement
+            if (elementUnderTouch && elementUnderTouch.classList.contains('flatpickr-day') && !elementUnderTouch.classList.contains('flatpickr-disabled')) {
+              currentHoverElement = elementUnderTouch
+            }
+          }
+        }, { passive: false })
+        
         // Global mouseup to handle drag ending anywhere
         document.addEventListener('mouseup', () => {
+          if (isDragging && startElement && currentHoverElement && currentHoverElement !== startElement) {
+            // Simulate the second click on the element we're hovering over
+            currentHoverElement.click()
+          }
+          isDragging = false
+          startElement = null
+          currentHoverElement = null
+        })
+        
+        // Global touchend to handle drag ending anywhere
+        document.addEventListener('touchend', () => {
           if (isDragging && startElement && currentHoverElement && currentHoverElement !== startElement) {
             // Simulate the second click on the element we're hovering over
             currentHoverElement.click()
