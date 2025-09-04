@@ -57,12 +57,22 @@ header {
   z-index: 10;
   flex-shrink: 0;
   
-  h1 {
-    color: #444;
-    margin: 0;
-    font-size: 18px;
-    text-shadow: 1px 1px 1px rgba(255, 255, 255, 1);
-    font-weight: 800;
+  
+}
+
+h1 {
+  display: flex;
+  align-items: center;
+  color: #444;
+  margin: 0;
+  font-size: 18px;
+  text-shadow: 1px 1px 1px rgba(255, 255, 255, 1);
+  font-weight: 800;
+
+  svg {
+    width: 100px;
+    flex-shrink: 0;
+    padding-right: 8px;
   }
 
   span {
@@ -70,7 +80,8 @@ header {
     font-style: italic;
     font-weight: 400;
     font-size: 0.9em;
-    // letter-spacing: 0.011em;
+    position: relative;
+    bottom: -2px;
   }
 }
 
@@ -305,25 +316,6 @@ header {
   gap: 10px;
   margin-bottom: 14px;
 }
-
-.brand-text {
-  text-align: center;
-  
-  h1 {
-    margin: 0;
-    font-size: 22px;
-    color: #454545;
-    font-weight: 900;
-  }
-  
-  span {
-    font-family: Georgia, 'Times New Roman', Times, serif;
-    font-style: italic;
-    color: #777;
-    font-size: 15px;
-  }
-}
-
 
 .auth-status {
   display: flex;
