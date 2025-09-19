@@ -543,7 +543,7 @@ h1 {
     padding-bottom: 70px;
     /* CRITICAL MOBILE SCROLLING FIXES */
     overflow-y: auto !important;
-    overflow-x: hidden !important;
+    overflow-x: auto !important;
     -webkit-overflow-scrolling: touch !important; /* iOS momentum scrolling */
     touch-action: pan-y !important; /* Allow vertical touch scrolling only */
     overscroll-behavior-y: contain !important; /* Prevent bounce affecting parent */
@@ -553,8 +553,13 @@ h1 {
     flex: none !important; /* Don't use flex sizing on mobile */
   }
 
-  #renderedMarkdown p {
-    padding-left: 0;
+  #renderedMarkdown {
+    h1 {
+      margin: 4px 0 6px;
+    }
+    p {
+      padding-left: 0;
+    }
   }
   
   /* Navigation buttons */
