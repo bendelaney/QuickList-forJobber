@@ -21,7 +21,7 @@
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "sass": "^1.91.0",
-    "vercel": "^46.1.1"
+    "vercel": "^48.0.2"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

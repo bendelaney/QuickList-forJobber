@@ -76,7 +76,7 @@ export async function GET(request: NextRequest) {
       const response = await fetch(process.env.JOBBER_API_URL!, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${accessToken.value}`,
+          'Authorization': `Bearer ${accessToken!.value}`,
           'Content-Type': 'application/json',
           'X-JOBBER-GRAPHQL-VERSION': process.env.JOBBER_API_VERSION!
         },
@@ -95,7 +95,7 @@ export async function GET(request: NextRequest) {
       const usersResp = await fetch(process.env.JOBBER_API_URL!, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${accessToken.value}`,
+          'Authorization': `Bearer ${accessToken!.value}`,
           'Content-Type': 'application/json',
           'X-JOBBER-GRAPHQL-VERSION': process.env.JOBBER_API_VERSION!
         },
