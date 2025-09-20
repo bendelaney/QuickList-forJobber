@@ -16,6 +16,11 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
+Requests mode
+- The sidebar header now includes a toggle between Visits and Requests.
+- Requests are driven by assessment visit dates and display as: ADDRESS -GEOCODE- LAST_NAME.
+- Update your `.env.local` `JOBBER_SCOPE` to include `read:requests` (and any required request/assessment scopes in your Jobber app).
+
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.

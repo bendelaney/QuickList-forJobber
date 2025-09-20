@@ -2,6 +2,9 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import QuickListLogo from './QuickListLogo';
+import { formatDate, formatTime } from '@/utils/date'
+import type { Mode } from '@/utils/types'
+import { formatRequestList, extractAssessors } from '@/utils/requestFormatter'
 
 declare global {
   interface Window {
@@ -56,27 +59,6 @@ const DEFAULT_SETTINGS: Settings = {
 
 
 // HELPER FUNCTIONS
-// Helper function to format a date string into a friendly format.
-export function formatDate(dateString: string): string {
-  const date = new Date(dateString);
-  const weekdayFormatter = new Intl.DateTimeFormat('en-US', { weekday: 'short' });
-  const weekday = weekdayFormatter.format(date);
-  const dateFormatter = new Intl.DateTimeFormat('en-US', { month: 'numeric', day: 'numeric' });
-  let formattedDate = dateFormatter.format(date);
-  formattedDate = formattedDate.replace(/(\d)(:?\d{2})\s?([AaPp][Mm])/, '$1$2$3').toLowerCase();
-  return `${weekday} ${formattedDate}`;
-}
-
-// Helper function to format a time string from a date
-export function formatTime(dateString: string): string {
-  const date = new Date(dateString);
-  const timeFormatter = new Intl.DateTimeFormat('en-US', { 
-    hour: 'numeric', 
-    minute: '2-digit',
-    hour12: true
-  });
-  return timeFormatter.format(date);
-}
 
 // Extract unique salespeople from data
 export function extractSalespeople(data: any): string[] {
@@ -105,6 +87,14 @@ export function formatJobList(
   let total = 0;
   let jobCount = 0;
   let jobLines = '';
+
+  // Strict filter: if "Include Selected" is chosen but no salespeople are selected, show nothing
+  if (settings?.salespersonFilter === 'showSelected') {
+    const selected = settings.selectedSalespeople || [];
+    if (selected.length === 0) {
+      return '';
+    }
+  }
 
   // Handle all cases: no data, no visits structure, or empty visits
   const visits = data?.data?.visits?.edges ? data.data.visits.edges : []
@@ -344,6 +334,7 @@ export function formatJobList(
 // The QuickList Component
 ///////////////////////////////////////////
 export default function QuickList() {
+  const [mode, setMode] = useState<Mode>('visits')
   const [showOutput, setShowOutput] = useState(false)
   const [isMarkdownPreviewing, setIsMarkdownPreviewing] = useState(true)
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS)
@@ -360,6 +351,28 @@ export default function QuickList() {
   
   const dateRangeRef = useRef<HTMLDivElement>(null)
   const flatpickrInstance = useRef<any>(null)
+  const lastFetchRef = useRef<number>(0)
+
+  // Initialize mode from localStorage
+  useEffect(() => {
+    try {
+      const savedMode = localStorage.getItem('quicklist_mode')
+      if (savedMode === 'visits' || savedMode === 'requests') {
+        setMode(savedMode as Mode)
+      }
+    } catch (e) {
+      // ignore
+    }
+  }, [])
+
+  // Persist mode selection
+  useEffect(() => {
+    try {
+      localStorage.setItem('quicklist_mode', mode)
+    } catch (e) {
+      // ignore
+    }
+  }, [mode])
 
   // Toggle section visibility
   const toggleSection = (section: 'display' | 'sorting' | 'visibility') => {
@@ -377,9 +390,9 @@ export default function QuickList() {
     })
   }
 
-  // Load settings on mount
+  // Load settings when mode changes (separate storage per mode)
   useEffect(() => {
-    const savedSettings = loadSettings()
+    const savedSettings = loadSettings(mode)
     setSettings(savedSettings)
     
     // Load saved dates
@@ -395,7 +408,14 @@ export default function QuickList() {
       setStartDate(defaultStart)
       setEndDate(defaultEnd)
     }
-  }, [])
+  }, [mode])
+
+  // Sanitize unavailable sort options when in requests mode
+  useEffect(() => {
+    if (mode === 'requests' && (settings.sortBy === 'value' || settings.sortBy === 'geoCodeThenValue')) {
+      updateSettings({ sortBy: 'alphabetical' })
+    }
+  }, [mode])
 
   // Initialize flatpickr when dates are set
   useEffect(() => {
@@ -411,21 +431,16 @@ export default function QuickList() {
     }
   }, [startDate, endDate])
 
-  // Auto-save settings when they change
+  // Auto-save settings when they change (per-mode key)
   useEffect(() => {
     if (settings !== DEFAULT_SETTINGS) {
-      saveSettings()
+      saveSettings(mode)
     }
-  }, [settings])
-
-  // Auto-format when relevant data changes
-  useEffect(() => {
-    formatAndDisplay()
-  }, [data, settings, filterText, startDate, endDate])
+  }, [settings, mode])
 
   // Render markdown when output changes
   useEffect(() => {
-    if (markdownOutput && window.marked && isMarkdownPreviewing) {
+    if (window.marked && isMarkdownPreviewing) {
       renderMarkdown()
     }
   }, [markdownOutput, isMarkdownPreviewing])
@@ -573,31 +588,29 @@ export default function QuickList() {
     }
   }
 
-  const saveSettings = () => {
+  const saveSettings = (currentMode: Mode) => {
     try {
       const updatedSettings = {
         ...settings,
         startDate: startDate?.toISOString() || null,
         endDate: endDate?.toISOString() || null,
-        selectedSalespeople: salespeople.filter(sp => {
-          const safeId = 'salesperson_' + sp.replace(/[^a-zA-Z0-9]/g, '_')
-          const el = document.getElementById(safeId)
-          const checkbox = (el instanceof HTMLInputElement) ? el : null
-          return checkbox ? checkbox.checked : false
-        })
       }
-      localStorage.setItem('jobberSettings', JSON.stringify(updatedSettings))
+      const key = currentMode === 'visits' ? 'jobberSettings_visits' : 'jobberSettings_requests'
+      localStorage.setItem(key, JSON.stringify(updatedSettings))
       console.log('Settings saved:', updatedSettings)
     } catch (error) {
       console.error('Error saving settings:', error)
     }
   }
 
-  const loadSettings = (): Settings => {
+  const loadSettings = (currentMode: Mode): Settings => {
     try {
-      const savedSettings = localStorage.getItem('jobberSettings')
-      if (savedSettings) {
-        return JSON.parse(savedSettings)
+      const key = currentMode === 'visits' ? 'jobberSettings_visits' : 'jobberSettings_requests'
+      const savedSettings = localStorage.getItem(key)
+      if (savedSettings) return JSON.parse(savedSettings)
+      // No saved settings for this mode; set a cheaper default for requests
+      if (currentMode === 'requests') {
+        return { ...DEFAULT_SETTINGS, showSalesperson: false }
       }
     } catch (error) {
       console.error('Error loading settings:', error)
@@ -606,17 +619,29 @@ export default function QuickList() {
   }
 
   const formatAndDisplay = useCallback(() => {
-    // Always run formatJobList - it will handle empty data and show range summary appropriately
-    const formattedMarkdown = formatJobList(data, settings, startDate, endDate, 'markdown', filterText)
+    const formattedMarkdown =
+      mode === 'visits'
+        ? formatJobList(data, settings, startDate, endDate, 'markdown', filterText)
+        : formatRequestList(data, settings, startDate, endDate, 'markdown', filterText)
     setMarkdownOutput(formattedMarkdown)
-  }, [data, settings, startDate, endDate, filterText])
+  }, [data, settings, startDate, endDate, filterText, mode])
+
+  // Auto-format when relevant data changes
+  useEffect(() => {
+    formatAndDisplay()
+  }, [formatAndDisplay])
+
+  // Force re-format when selectedSalespeople changes
+  useEffect(() => {
+    formatAndDisplay()
+  }, [settings.selectedSalespeople, formatAndDisplay])
 
   const renderMarkdown = () => {
     if (!window.marked) return
-    
-    const markdownedHTML = window.marked.parse(markdownOutput, { 
-      gfm: true, 
-      breaks: true 
+
+    const markdownedHTML = window.marked.parse(markdownOutput, {
+      gfm: true,
+      breaks: true
     })
     setRenderedMarkdown(markdownedHTML)
   }
@@ -652,8 +677,10 @@ export default function QuickList() {
     const endParam = extendedEndDate + "T00:00:00Z"
   
     try {
+      const endpoint = mode === 'visits' ? '/api/visits' : '/api/requests'
+      const includeAssignees = mode === 'requests' && (settings.showSalesperson || settings.salespersonFilter === 'showSelected')
       const response = await fetch(
-        `/api/visits?startDate=${encodeURIComponent(startParam)}&endDate=${encodeURIComponent(endParam)}`,
+        `${endpoint}?startDate=${encodeURIComponent(startParam)}&endDate=${encodeURIComponent(endParam)}${mode === 'requests' ? `&includeAssignees=${includeAssignees ? '1' : '0'}` : ''}`,
         { headers: { 'Accept': 'application/json' } }
       )
   
@@ -668,18 +695,27 @@ export default function QuickList() {
   
       const responseData = await response.json()
       console.log('API Response data:', responseData)
-      
       setData(responseData)
-      const extractedSalespeople = extractSalespeople(responseData)
-      setSalespeople(extractedSalespeople)
+      if (mode === 'visits') {
+        const extractedSalespeople = extractSalespeople(responseData)
+        setSalespeople(extractedSalespeople)
+      } else {
+        let extractedAssessors = extractAssessors(responseData)
+        // Always include an explicit 'Unassigned' option for Requests mode
+        if (!extractedAssessors.includes('Unassigned')) {
+          extractedAssessors = [...extractedAssessors, 'Unassigned']
+        }
+        setSalespeople(extractedAssessors)
+      }
       
     } catch (error) {
       console.error("Error fetching visits:", error)
       alert("Error fetching visits. Please try again.")
     } finally {
       setIsRefreshing(false)
+      lastFetchRef.current = Date.now()
     }
-  }, [startDate, endDate])
+  }, [startDate, endDate, mode])
 
   const navigateToPanel = (panelIndex: number) => {
     setShowOutput(panelIndex === 1)
@@ -769,7 +805,9 @@ export default function QuickList() {
           alert('No data yet.')
           return
         }
-        const plain = formatJobList(data, settings, startDate, endDate, 'plaintext', filterText)
+        const plain = mode === 'visits'
+          ? formatJobList(data, settings, startDate, endDate, 'plaintext', filterText)
+          : formatRequestList(data, settings, startDate, endDate, 'plaintext', filterText)
         success = await copyToClipboard(plain)
         if (success) showCopySuccess()
       }
@@ -806,14 +844,14 @@ export default function QuickList() {
     }
   }, [copyMenuOpen])
 
-  // Fetch visits when component mounts and dates are available
+  // Fetch data when dates or mode are available/changed
   useEffect(() => {
     if (startDate && endDate) {
       setTimeout(() => {
         fetchVisits()
       }, 100)
     }
-  }, [startDate, endDate])
+  }, [startDate, endDate, mode])
 
   // Intercept outgoing links to open in new windows
   useEffect(() => {
@@ -835,10 +873,12 @@ export default function QuickList() {
     return () => document.removeEventListener('click', handleLinkClick)
   }, [])
 
-  // Refresh data when window regains focus
+  // Refresh data when window regains focus (cooldown to reduce API calls)
   useEffect(() => {
     const handleWindowFocus = () => {
-      fetchVisits()
+      if (Date.now() - lastFetchRef.current > 10000) {
+        fetchVisits()
+      }
     }
 
     window.addEventListener('focus', handleWindowFocus)
@@ -856,6 +896,24 @@ export default function QuickList() {
               <QuickListLogo />
               <span>for Jobber</span>
             </h1>
+            <div className="mode-tabs">
+              <button
+                className={`button ${mode === 'visits' ? 'active' : ''}`}
+                onClick={() => setMode('visits')}
+                aria-pressed={mode === 'visits'}
+                title="Show Job Visits"
+              >
+                Visits
+              </button>
+              <button
+                className={`button ${mode === 'requests' ? 'active' : ''}`}
+                onClick={() => setMode('requests')}
+                aria-pressed={mode === 'requests'}
+                title="Show Requests (Assessment Visits)"
+              >
+                Requests
+              </button>
+            </div>
           </header>
 
           <div id="optionsContainer">
@@ -927,15 +985,17 @@ export default function QuickList() {
                 />
                 <label htmlFor="showTimeCheckbox">Times</label>
               </p>
-              <p>
-                <input
-                  type="checkbox"
-                  id="showValueCheckbox"
-                  checked={settings.showValue}
-                  onChange={(e) => updateSettings({ showValue: e.target.checked })}
-                />
-                <label htmlFor="showValueCheckbox">$ Value</label>
-              </p>
+              {mode === 'visits' && (
+                <p>
+                  <input
+                    type="checkbox"
+                    id="showValueCheckbox"
+                    checked={settings.showValue}
+                    onChange={(e) => updateSettings({ showValue: e.target.checked })}
+                  />
+                  <label htmlFor="showValueCheckbox">$ Value</label>
+                </p>
+              )}
               <p>
                 <input
                   type="checkbox"
@@ -943,7 +1003,7 @@ export default function QuickList() {
                   checked={settings.showSalesperson}
                   onChange={(e) => updateSettings({ showSalesperson: e.target.checked })}
                 />
-                <label htmlFor="showSalespersonCheckbox">Salesperson</label>
+                <label htmlFor="showSalespersonCheckbox">{mode === 'visits' ? 'Salesperson' : 'Estimator'}</label>
               </p>
               <p>
                 <input
@@ -974,10 +1034,10 @@ export default function QuickList() {
                 >
                   <option value="date">Date</option>
                   <option value="alphabetical">Alphabetical</option>
-                  <option value="value">$ Value</option>
+                  {mode === 'visits' && <option value="value">$ Value</option>}
                   <option value="geoCode">GeoCode</option>
-                  <option value="geoCodeThenValue">GeoCode, then $ Value</option>
-                  <option value="salesperson">Salesperson</option>
+                  {mode === 'visits' && <option value="geoCodeThenValue">GeoCode, then $ Value</option>}
+                  <option value="salesperson">{mode === 'visits' ? 'Salesperson' : 'Estimator'}</option>
                 </select>
                   </p>
                 </div>
@@ -991,23 +1051,25 @@ export default function QuickList() {
               </h4>
               {settings.expandedSections?.visibility !== false && (
               <div className="section-content">
+                {mode === 'visits' && (
+                  <p>
+                    <label htmlFor="annualSelect">Annual Jobs:</label>
+                    <select
+                      id="annualSelect"
+                      value={settings.annual}
+                      onChange={(e) => updateSettings({ annual: e.target.value })}
+                    >
+                      <option value="include">Include Annual Jobs</option>
+                      <option value="exclude">Exclude Annual Jobs</option>
+                      <option value="excludeUnconfirmed">Exclude Unconfirmed Annual Jobs</option>
+                      <option value="annualOnly">Show Only Annual Jobs</option>
+                      <option value="annualOnlyConfirmed">Show Only *Confirmed* Annual Jobs</option>
+                      <option value="annualOnlyUnconfirmed">Show Only *Unconfirmed* Annual Jobs</option>
+                    </select>
+                  </p>
+                )}
                 <p>
-                  <label htmlFor="annualSelect">Annual Jobs:</label>
-                  <select
-                    id="annualSelect"
-                    value={settings.annual}
-                    onChange={(e) => updateSettings({ annual: e.target.value })}
-                  >
-                    <option value="include">Include Annual Jobs</option>
-                    <option value="exclude">Exclude Annual Jobs</option>
-                    <option value="excludeUnconfirmed">Exclude Unconfirmed Annual Jobs</option>
-                    <option value="annualOnly">Show Only Annual Jobs</option>
-                    <option value="annualOnlyConfirmed">Show Only *Confirmed* Annual Jobs</option>
-                    <option value="annualOnlyUnconfirmed">Show Only *Unconfirmed* Annual Jobs</option>
-                  </select>
-                </p>
-                <p>
-                  <label htmlFor="salespersonFilterSelect">Salesperson:</label>
+                  <label htmlFor="salespersonFilterSelect">{mode === 'visits' ? 'Salesperson' : 'Estimator'}:</label>
                   <select
                     id="salespersonFilterSelect"
                     value={settings.salespersonFilter}
@@ -1046,15 +1108,10 @@ export default function QuickList() {
                         id={`salesperson_${salesperson.replace(/[^a-zA-Z0-9]/g, '_')}`}
                         checked={settings.selectedSalespeople.includes(salesperson)}
                         onChange={(e) => {
-                          if (e.target.checked) {
-                            updateSettings({
-                              selectedSalespeople: [...settings.selectedSalespeople, salesperson]
-                            })
-                          } else {
-                            updateSettings({
-                              selectedSalespeople: settings.selectedSalespeople.filter(sp => sp !== salesperson)
-                            })
-                          }
+                          const newSelectedSalespeople = e.target.checked
+                            ? [...settings.selectedSalespeople, salesperson]
+                            : settings.selectedSalespeople.filter(sp => sp !== salesperson)
+                          updateSettings({ selectedSalespeople: newSelectedSalespeople })
                         }}
                       />
                       <label htmlFor={`salesperson_${salesperson.replace(/[^a-zA-Z0-9]/g, '_')}`}>
@@ -1106,15 +1163,12 @@ export default function QuickList() {
                         id={`day_${day}`}
                         checked={settings.selectedDays?.includes(day) || false}
                         onChange={(e) => {
-                          if (e.target.checked) {
-                            updateSettings({
-                              selectedDays: [...(settings.selectedDays || []), day]
-                            })
-                          } else {
-                            updateSettings({
-                              selectedDays: (settings.selectedDays || []).filter(d => d !== day)
-                            })
-                          }
+                          setSettings(prev => ({
+                            ...prev,
+                            selectedDays: e.target.checked
+                              ? [ ...(prev.selectedDays || []), day ]
+                              : (prev.selectedDays || []).filter(d => d !== day)
+                          }))
                         }}
                       />
                       <label htmlFor={`day_${day}`}>
